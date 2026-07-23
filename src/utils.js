@@ -6,6 +6,38 @@ export function memberName(db, id) {
   return memberById(db, id)?.name || '알 수 없음'
 }
 
+/* ── 날짜 헬퍼 ── */
+const WEEK = ['일', '월', '화', '수', '목', '금', '토']
+export const pad2 = (n) => String(n).padStart(2, '0')
+export const ymd = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+export const todayStr = () => ymd(new Date())
+export const dowOf = (dateStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d).getDay()
+}
+
+// '2026-08-15' → '2026.08.15(토)'
+export function fmtDate(dateStr) {
+  if (!dateStr) return ''
+  return `${dateStr.replaceAll('-', '.')}(${WEEK[dowOf(dateStr)]})`
+}
+
+// 확정된 여행 기간을 사람이 읽기 좋게. 당일치기/여러 날 모두 처리.
+export function fmtRange(start, end) {
+  if (!start) return ''
+  if (!end || end === start) return fmtDate(start)
+  const sameMonth = start.slice(0, 7) === end.slice(0, 7)
+  const endLabel = sameMonth ? `${Number(end.slice(8))}(${WEEK[dowOf(end)]})` : fmtDate(end)
+  return `${fmtDate(start)} ~ ${endLabel}`
+}
+
+// 여행이 지금 어느 단계인지 자동 판정: 1 일정조율 / 2 세부일정 / 3 추억정리
+export function tripStage(trip) {
+  if (!trip.confirmed_start) return 1
+  const last = trip.confirmed_end || trip.confirmed_start
+  return todayStr() > last ? 3 : 2
+}
+
 // 업로드 사진을 최대 1000px, JPEG 75%로 압축해 용량을 줄인다.
 export async function compressImage(file) {
   const img = await new Promise((resolve, reject) => {

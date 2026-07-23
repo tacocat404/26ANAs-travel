@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Megaphone, PushPin, X } from '@phosphor-icons/react'
 import { store } from './store.js'
+import { useConfirm } from './confirm.jsx'
 import { memberById } from './utils.js'
 
 export default function NoticeTab({ db, me, trip, refresh }) {
   const [text, setText] = useState('')
+  const confirmDlg = useConfirm()
 
   const notices = db.notices
     .filter((n) => n.trip_id === trip.id)
@@ -64,7 +66,7 @@ export default function NoticeTab({ db, me, trip, refresh }) {
                     className="ghost-icon"
                     title="삭제"
                     onClick={async () => {
-                      if (confirm('이 공지를 삭제할까요?')) {
+                      if (await confirmDlg('이 공지를 삭제할까요?', { okLabel: '삭제', danger: true })) {
                         await store.removeNotice(n.id)
                         refresh()
                       }

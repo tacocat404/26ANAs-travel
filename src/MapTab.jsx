@@ -3,53 +3,15 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { ArrowLeft, MapPin, Plus, X } from '@phosphor-icons/react'
 import { store } from './store.js'
+import { useConfirm } from './confirm.jsx'
 import { memberById, memberName } from './utils.js'
+import { PROVINCE_LABELS, geoStyle, outerRings } from './mapStyle.js'
 
 /* ── 스타일 지도: 통계청(KOSTAT) 시군구 경계를 시도별 파스텔 색으로 칠한다.
-     확대(포커스) 모드에서만 실제 거리 지도가 나타나 장소 핀을 찍을 수 있다. ── */
+     확대(포커스) 모드에서만 실제 거리 지도가 나타나 장소 핀을 찍을 수 있다.
+     색/라벨 데이터는 mapStyle.js 참고. ── */
 
-// KOSTAT 시도 코드 → 색상(hue). 인접한 도끼리 색이 겹치지 않게 배치.
-const HUES = {
-  11: 32, 21: 205, 22: 14, 23: 46, 24: 160, 25: 282, 26: 192,
-  29: 52, 31: 36, 32: 128, 33: 268, 34: 350, 35: 96, 36: 172,
-  37: 22, 38: 146, 39: 330,
-}
-// 시도 라벨 (짧은 이름, 위치, 도 단위 여부)
-const PROVINCE_LABELS = [
-  ['경기', 37.22, 127.42, true],
-  ['강원', 37.72, 128.35, true],
-  ['충북', 36.83, 127.93, true],
-  ['충남', 36.42, 126.78, true],
-  ['전북', 35.72, 127.12, true],
-  ['전남', 34.88, 126.92, true],
-  ['경북', 36.38, 128.9, true],
-  ['경남', 35.35, 128.2, true],
-  ['제주', 33.38, 126.53, true],
-  ['서울', 37.55, 126.98, false],
-  ['인천', 37.44, 126.52, false],
-  ['대전', 36.33, 127.4, false],
-  ['세종', 36.6, 127.24, false],
-  ['광주', 35.15, 126.84, false],
-  ['대구', 35.83, 128.56, false],
-  ['울산', 35.56, 129.28, false],
-  ['부산', 35.16, 129.06, false],
-]
-
-const hashNum = (s) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0)
-const fillOf = (code, chosen) => {
-  const hue = HUES[code.slice(0, 2)] ?? 200
-  const light = 68 + (hashNum(code) % 5) * 3 // 68~80% 사이에서 구역마다 살짝 다르게
-  return `hsl(${hue} ${chosen ? 62 : 46}% ${chosen ? light - 10 : light}%)`
-}
-
-// GeoJSON 좌표([lng,lat]) → Leaflet([lat,lng]) 뒤집어서 폴리곤 바깥 고리들만 모은다.
-function outerRings(feature) {
-  const g = feature.geometry
-  const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates
-  return polys.map((rings) => rings[0].map(([lng, lat]) => [lat, lng]))
-}
-
-export default function MapTab({ db, me, trip, refresh }) {
+export default function MapTab({ db, me, trip, refresh, active = true }) {
   const mapEl = useRef(null)
   const mapRef = useRef(null)
   const geoRef = useRef(null) // 행정구역 레이어
@@ -65,6 +27,12 @@ export default function MapTab({ db, me, trip, refresh }) {
   const [focus, setFocus] = useState(null) // { code, name, center:{lat,lng} }
   const [draft, setDraft] = useState(null)
   const [name, setName] = useState('')
+  const confirmDlg = useConfirm()
+
+  // 탭이 숨겨졌다 다시 보이면 지도 크기를 다시 계산한다 (숨김 상태에선 크기가 0으로 잡힘).
+  useEffect(() => {
+    if (active) mapRef.current?.invalidateSize()
+  }, [active])
 
   const regions = db.regions.filter((r) => r.trip_id === trip.id)
   const focusRegion = focus ? regions.find((r) => r.code === focus.code) : null
@@ -99,12 +67,7 @@ export default function MapTab({ db, me, trip, refresh }) {
       const fc = feature(data, data.objects.skorea_municipalities_geo)
       featuresRef.current = fc.features
       const geo = L.geoJSON(fc, {
-        style: (f) => ({
-          fillColor: fillOf(f.properties.code, chosenRef.current.has(f.properties.code)),
-          fillOpacity: 1,
-          color: 'rgba(255,255,255,0.9)',
-          weight: chosenRef.current.has(f.properties.code) ? 2 : 0.8,
-        }),
+        style: (f) => geoStyle(chosenRef.current)(f),
         onEachFeature: (f, layer) => {
           layer.bindTooltip(f.properties.name, { sticky: true, direction: 'top', className: 'geo-tip' })
           layer.on('click', (e) => {
@@ -138,12 +101,7 @@ export default function MapTab({ db, me, trip, refresh }) {
   /* ── 담긴 후보지 스타일 갱신 ── */
   useEffect(() => {
     chosenRef.current = new Set(regions.map((r) => r.code).filter(Boolean))
-    geoRef.current?.setStyle((f) => ({
-      fillColor: fillOf(f.properties.code, chosenRef.current.has(f.properties.code)),
-      fillOpacity: 1,
-      color: 'rgba(255,255,255,0.9)',
-      weight: chosenRef.current.has(f.properties.code) ? 2 : 0.8,
-    }))
+    geoRef.current?.setStyle(geoStyle(chosenRef.current))
   }, [db.regions, trip.id, ready])
 
   /* ── 포커스 진입/이탈 ── */
@@ -338,7 +296,7 @@ export default function MapTab({ db, me, trip, refresh }) {
                     className="x"
                     aria-label="삭제"
                     onClick={async () => {
-                      if (confirm(`'${p.name}' 핀을 삭제할까요?`)) {
+                      if (await confirmDlg(`'${p.name}' 핀을 삭제할까요?`, { okLabel: '삭제', danger: true })) {
                         await store.removePlace(p.id)
                         refresh()
                       }
@@ -379,7 +337,12 @@ export default function MapTab({ db, me, trip, refresh }) {
                     className="x"
                     aria-label="삭제"
                     onClick={async () => {
-                      if (confirm(`'${r.name}' 후보지를 삭제할까요? 안에 찍은 핀도 함께 삭제돼요.`)) {
+                      if (
+                        await confirmDlg(`'${r.name}' 후보지를 삭제할까요?\n안에 찍은 핀도 함께 삭제돼요.`, {
+                          okLabel: '삭제',
+                          danger: true,
+                        })
+                      ) {
                         await store.removeRegion(r.id)
                         refresh()
                       }

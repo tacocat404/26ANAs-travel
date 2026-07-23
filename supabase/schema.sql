@@ -19,11 +19,16 @@ create table trips (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   emoji text default '🏝️',
-  start_month text,
+  start_month text,          -- 후보 시기(월). 1단계 일정 조율의 출발점.
   end_month text,
+  confirmed_start date,      -- 확정된 여행 시작일. 1단계에서 "가는 날 확정" 시 저장.
+  confirmed_end date,        -- 확정된 여행 종료일(당일치기면 시작일과 같음).
   created_by uuid references members(id) on delete set null,
   created_at timestamptz default now()
 );
+-- 기존 프로젝트에 이미 trips 테이블이 있으면 아래 두 줄만 실행:
+-- alter table trips add column if not exists confirmed_start date;
+-- alter table trips add column if not exists confirmed_end date;
 
 create table regions (
   id uuid primary key default gen_random_uuid(),

@@ -1,0 +1,69 @@
+-- 언제갈까? 데이터베이스 스키마
+-- Supabase 대시보드 → SQL Editor 에 전체를 붙여넣고 Run 하면 끝.
+
+create table members (
+  id uuid primary key default gen_random_uuid(),
+  name text unique not null,
+  color text not null,
+  created_at timestamptz default now()
+);
+
+create table unavailable (
+  id uuid primary key default gen_random_uuid(),
+  member_id uuid not null references members(id) on delete cascade,
+  date date not null,
+  unique (member_id, date)
+);
+
+create table trips (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  emoji text default '🏝️',
+  start_month text,
+  end_month text,
+  created_by uuid references members(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+create table regions (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  name text not null,
+  lat double precision not null,
+  lng double precision not null,
+  added_by uuid references members(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+create table notices (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  member_id uuid references members(id) on delete set null,
+  content text not null,
+  pinned boolean default false,
+  created_at timestamptz default now()
+);
+
+create table photos (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  member_id uuid references members(id) on delete set null,
+  data_url text not null,
+  caption text default '',
+  created_at timestamptz default now()
+);
+
+-- 친구끼리 쓰는 앱이라 링크(anon key)를 아는 사람은 모두 읽고 쓸 수 있게 연다.
+alter table members enable row level security;
+alter table unavailable enable row level security;
+alter table trips enable row level security;
+alter table regions enable row level security;
+alter table notices enable row level security;
+alter table photos enable row level security;
+
+create policy "open" on members for all using (true) with check (true);
+create policy "open" on unavailable for all using (true) with check (true);
+create policy "open" on trips for all using (true) with check (true);
+create policy "open" on regions for all using (true) with check (true);
+create policy "open" on notices for all using (true) with check (true);
+create policy "open" on photos for all using (true) with check (true);

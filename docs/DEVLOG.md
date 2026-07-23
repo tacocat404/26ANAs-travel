@@ -2,6 +2,15 @@
 
 ## 2026-07-24
 
+### [구현] 브랜치 통합 - design-ux + feature/map → main
+- **사용자 프롬프트(요약)**: 이제 두 브랜치 합치고 싶어. (선택지 확인 후 "둘 다 합치기" 선택)
+- **Claude의 변경사항**:
+  - `worktree-design-ux`(UX 개편 + 홈 3탭 + 단계 흐름 + 일별 캘린더) → main 병합. 충돌은 DEVLOG뿐, 양쪽 기록 모두 유지.
+  - `feature/map`(장소 검색) → main 병합. **MapTab 충돌을 수동 통합**: design-ux 구조(mapStyle.js 분리, 확인 모달, 탭 keep-alive) 위에 검색 기능 이식. 검색 헬퍼(카카오 로더/카카오 검색/OSM 검색)는 새 파일 `src/mapSearch.js`로 분리 (mapStyle.js와 같은 방식). styles.css는 자동 병합(스텝퍼+검색 UI 공존), DEVLOG 양쪽 유지.
+  - 이제 main 하나에 전 기능이 모임: 홈 3탭(여행/일별 캘린더/갤러리) + 여행 단계 흐름(조율→세부→추억, 공지 상시) + 지도 구역·장소 검색(카카오 키 넣으면 자동 전환) + GitHub Pages 배포 설정.
+- **검증**: 병합된 main에서 프로덕션 빌드 성공. 브라우저 전 흐름 확인 - 홈 일별 캘린더(8/15·16 🏝️) → 여행 자동 2단계 진입(스텝1 체크) → 전국 지도 구역 검색("속초"→속초시) → 포커스 진입 + "후보지로 담기" → 장소 검색("속초해수욕장", OSM 실좌표) → 결과 탭 → 이름 미리 채워진 핀 폼 → 핀 1번 찍기 + 목록 반영. 충돌 마커 잔존 0.
+- **다음 단계**: 운영자 지시 시 push (GitHub Pages 자동 배포됨). 이후 각 브랜치는 main에서 새로 갈라 작업.
+
 ### [배포] GitHub Pages 자동 배포 설정
 - **사용자 프롬프트(요약)**: Vercel 말고 GitHub 자체(Pages)로 배포하고 싶다.
 - **Claude의 변경사항**: `vite.config.js`에 base 경로 추가(빌드 때만 `/-/`, 저장소 이름이 `-`라서. dev는 `/`). `.github/workflows/deploy.yml` 추가 — main push 시 자동 빌드→Pages 배포(Actions 방식). 빌드 산출물 경로 `/-/assets/…` 확인.

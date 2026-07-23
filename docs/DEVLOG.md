@@ -2,6 +2,12 @@
 
 ## 2026-07-24
 
+### [배포] Supabase 연결 - 공유 모드 전환
+- **사용자 프롬프트(요약)**: Supabase 연결 방법 문의. 대시보드 화면 스크린샷 공유하며 단계별 안내 요청(비밀번호 분실, 화면 위치 못 찾음 포함). 최종적으로 Publishable key(`sb_publishable_...`) 전달.
+- **Claude의 변경사항**: `src/config.js`의 `SUPABASE_URL`(Project ID로 역산: `https://ipjiyweguvoxduhmakmr.supabase.co`)과 `SUPABASE_ANON_KEY`(새 방식 Publishable key)를 입력. 새 Supabase 키 체계(publishable/secret)로 바뀐 프로젝트라 기존 anon key 대신 publishable key 사용 - `@supabase/supabase-js` 2.45.0과 호환 확인.
+- **검증**: 다른 세션이 포트 5173 점유 중이라 임시 포트(5175)로 별도 dev 서버 띄워 확인. 로그인 테스트("연결테스트") → 브라우저에서 직접 REST API(fetch) 조회로 실제 DB 저장 확인, 이 과정에서 **5173 세션(실사용자)이 이미 "미주"로 로그인해 같은 DB에 데이터가 쌓인 것도 확인** - 두 창이 같은 데이터를 보는 공유 모드 정상 동작 검증. 테스트 계정("연결테스트")은 API로 삭제, 임시 서버 프로세스 종료.
+- **다음 단계**: 이제부터 앱이 데모 모드가 아니라 공유 모드로 동작. 운영자 DB 비밀번호는 분실해도 문제없음(앱은 API 키만 사용, DB 직접 접속 비밀번호는 안 씀) - 안내 완료.
+
 ### [배포] 카카오 장소 검색 실제 활성화 확인
 - **사용자 프롬프트(요약)**: 카카오 도메인 등록 화면 스크린샷 여러 장 전달하며 적용됐는지 확인 요청. 처음엔 "제품 링크 관리"(카카오톡 공유용, 엉뚱한 곳)에 등록 → 안내로 "플랫폼 키 > JavaScript 키"로 이동 → 도메인 3개 정확히 등록.
 - **Claude의 변경사항**: 등록 화면에서 **키가 다른 것을 발견** - 도메인은 새로 발급한 "ANAtravel" 키(`0ad7baa8f374...`)에 등록됐는데, `config.js`엔 기존 "Default JS Key"(`7069d4c4a398...`)가 들어있어 여전히 막혀 있었음. `KAKAO_JS_KEY`를 ANAtravel 키로 교체 후 커밋·push.

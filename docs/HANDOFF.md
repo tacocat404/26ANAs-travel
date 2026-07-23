@@ -27,8 +27,8 @@
 - 미리보기: `.claude/launch.json`(Blog 세션 기준)에 `trip-calendar` 항목이 있고, 일반적으로는 `npm run dev` (포트 5173).
 
 ## 남은 일 (우선순위 순)
-1. **Supabase 연결**: 운영자가 supabase.com에서 프로젝트 생성(가이드: `docs/SETUP.md` 1단계) → URL + anon 키를 주면 `src/config.js`에 넣기 → 자동으로 공유 모드.
-2. **배포**: 운영자가 GitHub 저장소 생성(계정 tacocat404) → push → Vercel 연결(SETUP.md 2단계). git push = 배포.
+1. ~~**Supabase 연결**~~ — 2026-07-24 완료. `src/config.js`에 URL + Publishable key(`sb_publishable_...`, 새 Supabase 키 체계) 입력됨. 앱은 이제 **공유 모드**로 동작 중 (친구들끼리 같은 데이터 공유).
+2. ~~**배포**~~ — GitHub Pages로 이미 자동 배포 중 (main push = 배포). https://tacocat404.github.io/26ANAs-travel/
 3. 이후 아이디어(합의 안 됨, 제안만): 핀 순서 바꾸기, 전원 가능일 자동 추천, 후보지 투표, 샘플 데이터 정리 기능.
 
 ## 현재 데모 데이터 (운영자 브라우저 localStorage)

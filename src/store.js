@@ -59,6 +59,12 @@ const localStore = {
     for (const k of ['regions', 'places', 'notices', 'photos']) db[k] = db[k].filter((x) => x.trip_id !== id)
     lsWrite(db)
   },
+  async setTripDates(id, dates) {
+    const db = lsRead()
+    const t = db.trips.find((x) => x.id === id)
+    if (t) Object.assign(t, dates) // { confirmed_start, confirmed_end }
+    lsWrite(db)
+  },
   async addRegion(r) {
     const db = lsRead()
     const row = { id: uid(), created_at: now(), ...r }
@@ -144,6 +150,9 @@ const remoteStore = {
   },
   async removeTrip(id) {
     q(await sb.from('trips').delete().eq('id', id))
+  },
+  async setTripDates(id, dates) {
+    q(await sb.from('trips').update(dates).eq('id', id))
   },
   async addRegion(r) {
     return q(await sb.from('regions').insert(r).select())[0]

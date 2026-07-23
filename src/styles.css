@@ -463,73 +463,229 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-/* ── 홈: 여행 캘린더(연간) + 여행별 갤러리 ── */
+/* ── 홈: 여행/캘린더/갤러리 ── */
 .tabs.home-tabs {
   grid-template-columns: repeat(3, 1fr);
 }
-.year-cal {
-  padding: 10px;
+.trip-chip-emoji {
+  font-size: 15px;
 }
-.year-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+
+/* 홈 캘린더: 일별 그리드에 확정 여행 표시 */
+.home-day {
+  cursor: default;
+  border: 2px solid transparent;
 }
-.month-cell {
-  border: 1px solid var(--line);
-  border-radius: var(--r-ctl);
-  padding: 8px;
+.home-day.has-trip {
+  cursor: pointer;
+  background: color-mix(in srgb, var(--ink) 6%, var(--mix));
+  border-color: color-mix(in srgb, var(--ink) 14%, var(--line));
+}
+.day-trips {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  min-height: 66px;
+  align-items: center;
+  gap: 1px;
+  height: 16px;
+  line-height: 1;
 }
-.month-cell.now {
-  border-color: var(--ink);
-  border-width: 2px;
-  padding: 7px;
+.day-trip-emoji {
+  font-size: 13px;
 }
-.month-name {
-  font-size: 12px;
-  font-weight: 700;
+.day-trips em {
+  font-style: normal;
+  font-size: 9px;
   color: var(--sub);
 }
-.month-cell.now .month-name {
-  color: var(--ink);
-}
-.trip-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  border-radius: 999px;
-  padding: 4px 11px 4px 7px;
-  font-size: 12px;
-  font-weight: 700;
-  transition: transform 0.12s var(--ease), border-color 0.15s;
-}
-.trip-chip:active {
-  transform: scale(0.95);
-}
-.trip-chip-emoji {
-  font-size: 14px;
-}
-.trip-chip-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+
 .undated-card {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 .undated-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
 }
+.undated-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.undated-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.15s, transform 0.12s var(--ease);
+}
+.undated-row:active {
+  transform: scale(0.98);
+}
+.undated-row small {
+  color: var(--sub);
+  font-size: 12px;
+}
+.undated-cta {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sub);
+  flex-shrink: 0;
+}
+
+/* ── 여행 단계(스텝) 네비 ── */
+.stage-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  background: color-mix(in srgb, var(--ink) 6%, var(--bg));
+  border-radius: 14px;
+  padding: 4px;
+  gap: 2px;
+}
+.step {
+  flex: 1;
+  display: flex;
+}
+.step button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 7px;
+  border-radius: 11px;
+  transition: background 0.15s, transform 0.12s var(--ease);
+}
+.step button:active {
+  transform: scale(0.96);
+}
+.step-mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: color-mix(in srgb, var(--ink) 12%, var(--mix));
+  color: var(--sub);
+  font-variant-numeric: tabular-nums;
+}
+.step-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sub);
+  white-space: nowrap;
+}
+.step.done .step-mark {
+  background: color-mix(in srgb, var(--ink) 78%, var(--mix));
+  color: var(--btn-ink-text);
+}
+.step.current button {
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.step.current .step-mark {
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+}
+.step.current .step-label {
+  color: var(--ink);
+}
+.notice-access {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sub);
+  position: relative;
+  transition: color 0.15s, border-color 0.15s, transform 0.12s var(--ease);
+}
+.notice-access:active {
+  transform: scale(0.96);
+}
+.notice-access.on {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.notice-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+/* ── 1단계: 가는 날 확정 배너 ── */
+.confirmed-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-color: color-mix(in srgb, var(--ink) 30%, var(--line));
+}
+.confirmed-main {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.confirmed-main small {
+  display: block;
+  font-size: 12px;
+  color: var(--sub);
+  font-weight: 700;
+}
+.confirmed-main b {
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+.ghost.small {
+  padding: 8px 12px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.cal-day.trip-day:not(.mine) {
+  background: color-mix(in srgb, var(--ink) 10%, var(--mix));
+}
+.cal-day.trip-day .d {
+  font-weight: 800;
+}
+
 .gal-group {
   display: flex;
   flex-direction: column;
@@ -1109,8 +1265,19 @@ button.map-chip:active {
   button.map-chip:hover {
     transform: translateY(-1px);
   }
-  .trip-chip:hover {
+  .undated-row:hover,
+  .home-day.has-trip:hover {
     border-color: var(--ink);
+  }
+  .step:not(.current) button:hover {
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+  .step:not(.current) button:hover .step-label {
+    color: var(--ink);
+  }
+  .notice-access:hover {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--ink) 40%, var(--line));
   }
   .gal-group-head:hover .chev {
     color: var(--ink);
@@ -1193,10 +1360,7 @@ button.map-chip:active {
   .cal-week {
     font-size: 12px;
   }
-  .year-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .trip-chip {
+  .step-label {
     font-size: 13px;
   }
   .hint {

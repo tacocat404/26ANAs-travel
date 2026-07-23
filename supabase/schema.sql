@@ -29,6 +29,19 @@ create table regions (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references trips(id) on delete cascade,
   name text not null,
+  code text,
+  lat double precision not null,
+  lng double precision not null,
+  added_by uuid references members(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+-- 후보지(행정구역) 안에 찍는 장소 핀 (맛집, 갈 곳 등). 추가한 순서대로 선으로 이어진다.
+create table places (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references trips(id) on delete cascade,
+  region_id uuid not null references regions(id) on delete cascade,
+  name text not null,
   lat double precision not null,
   lng double precision not null,
   added_by uuid references members(id) on delete set null,
@@ -58,6 +71,7 @@ alter table members enable row level security;
 alter table unavailable enable row level security;
 alter table trips enable row level security;
 alter table regions enable row level security;
+alter table places enable row level security;
 alter table notices enable row level security;
 alter table photos enable row level security;
 
@@ -65,5 +79,6 @@ create policy "open" on members for all using (true) with check (true);
 create policy "open" on unavailable for all using (true) with check (true);
 create policy "open" on trips for all using (true) with check (true);
 create policy "open" on regions for all using (true) with check (true);
+create policy "open" on places for all using (true) with check (true);
 create policy "open" on notices for all using (true) with check (true);
 create policy "open" on photos for all using (true) with check (true);

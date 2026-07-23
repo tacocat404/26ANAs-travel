@@ -11,7 +11,7 @@ export const MEMBER_COLORS = [
 ]
 
 const LS_KEY = 'trip-cal-v1'
-const EMPTY = { members: [], unavailable: [], trips: [], regions: [], notices: [], photos: [] }
+const EMPTY = { members: [], unavailable: [], trips: [], regions: [], places: [], notices: [], photos: [] }
 const uid = () => crypto.randomUUID()
 const now = () => new Date().toISOString()
 
@@ -56,17 +56,30 @@ const localStore = {
   async removeTrip(id) {
     const db = lsRead()
     db.trips = db.trips.filter((t) => t.id !== id)
-    for (const k of ['regions', 'notices', 'photos']) db[k] = db[k].filter((x) => x.trip_id !== id)
+    for (const k of ['regions', 'places', 'notices', 'photos']) db[k] = db[k].filter((x) => x.trip_id !== id)
     lsWrite(db)
   },
   async addRegion(r) {
     const db = lsRead()
-    db.regions.push({ id: uid(), created_at: now(), ...r })
+    const row = { id: uid(), created_at: now(), ...r }
+    db.regions.push(row)
     lsWrite(db)
+    return row
   },
   async removeRegion(id) {
     const db = lsRead()
     db.regions = db.regions.filter((r) => r.id !== id)
+    db.places = db.places.filter((p) => p.region_id !== id)
+    lsWrite(db)
+  },
+  async addPlace(p) {
+    const db = lsRead()
+    db.places.push({ id: uid(), created_at: now(), ...p })
+    lsWrite(db)
+  },
+  async removePlace(id) {
+    const db = lsRead()
+    db.places = db.places.filter((p) => p.id !== id)
     lsWrite(db)
   },
   async addNotice(n) {
@@ -106,7 +119,7 @@ const q = (r) => {
 const remoteStore = {
   demo: false,
   async getAll() {
-    const names = ['members', 'unavailable', 'trips', 'regions', 'notices', 'photos']
+    const names = ['members', 'unavailable', 'trips', 'regions', 'places', 'notices', 'photos']
     const res = await Promise.all(names.map((n) => sb.from(n).select('*')))
     const out = {}
     names.forEach((n, i) => {
@@ -133,10 +146,16 @@ const remoteStore = {
     q(await sb.from('trips').delete().eq('id', id))
   },
   async addRegion(r) {
-    q(await sb.from('regions').insert(r))
+    return q(await sb.from('regions').insert(r).select())[0]
   },
   async removeRegion(id) {
     q(await sb.from('regions').delete().eq('id', id))
+  },
+  async addPlace(p) {
+    q(await sb.from('places').insert(p))
+  },
+  async removePlace(id) {
+    q(await sb.from('places').delete().eq('id', id))
   },
   async addNotice(n) {
     q(await sb.from('notices').insert(n))

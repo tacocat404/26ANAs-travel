@@ -2,6 +2,11 @@
 
 ## 2026-07-24
 
+### [배포] GitHub Pages 자동 배포 설정
+- **사용자 프롬프트(요약)**: Vercel 말고 GitHub 자체(Pages)로 배포하고 싶다.
+- **Claude의 변경사항**: `vite.config.js`에 base 경로 추가(빌드 때만 `/-/`, 저장소 이름이 `-`라서. dev는 `/`). `.github/workflows/deploy.yml` 추가 — main push 시 자동 빌드→Pages 배포(Actions 방식). 빌드 산출물 경로 `/-/assets/…` 확인.
+- **다음 단계**: 운영자가 GitHub 저장소 Settings → Pages → Source를 "GitHub Actions"로 한 번 설정. 이후 자동 배포. 주소는 https://tacocat404.github.io/-/ 예상.
+
 ### [배포] GitHub 원격 저장소 연결 + 첫 push
 - **사용자 프롬프트(요약)**: 배포하겠다며 저장소 주소(https://github.com/tacocat404/-.git) 전달.
 - **Claude의 변경사항**: origin 등록, main + feature/map 브랜치 push. CLAUDE.md/HANDOFF.md에 저장소 주소 기록.

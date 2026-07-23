@@ -5,7 +5,8 @@
 ## 프로젝트가 뭔가
 - **"언제갈까?"** - 친구들이 각자 "안 되는 날"을 색깔로 표시해 모두 갈 수 있는 여행 날짜를 찾는 웹앱.
 - 위치: `C:\기미주\일정캘린더`. React + Vite. 운영자는 비개발자.
-- 원격 저장소: https://github.com/tacocat404/- (main + feature/map push됨, 2026-07-24). Vercel 연결은 운영자 진행 대기.
+- 원격 저장소: https://github.com/tacocat404/- (main + feature/map push됨, 2026-07-24).
+- 배포: GitHub Pages(Actions). main push = 자동 배포. `vite.config.js` base=`/-/`(빌드 시), 워크플로 `.github/workflows/deploy.yml`. 운영자가 Settings→Pages→Source="GitHub Actions" 1회 설정 필요. 예상 주소 https://tacocat404.github.io/-/
 
 ## 지금까지 완성된 것 (전부 동작 확인됨)
 1. **이름 로그인** (비밀번호 없음, 사람마다 고유 색 자동 배정)

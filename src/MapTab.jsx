@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import { ArrowLeft, MagnifyingGlass, MapPin, Plus, X } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { memberById, memberName } from './utils.js'
+import { KAKAO_JS_KEY } from './config.js'
 
 /* ── 스타일 지도: 통계청(KOSTAT) 시군구 경계를 시도별 파스텔 색으로 칠한다.
      확대(포커스) 모드에서만 실제 거리 지도가 나타나 장소 핀을 찍을 수 있다.
@@ -50,15 +51,66 @@ function outerRings(feature) {
   return polys.map((rings) => rings[0].map(([lng, lat]) => [lat, lng]))
 }
 
-// Nominatim 결과에서 보여줄 짧은 이름/주소 추출
-const resultName = (r) => (r.name || r.display_name.split(',')[0]).trim()
-const resultAddr = (r) =>
-  r.display_name
-    .split(',')
-    .slice(1, 4)
-    .map((s) => s.trim())
-    .reverse()
-    .join(' ')
+/* ── 장소 검색 2단 구조: config.js에 카카오 JavaScript 키가 있으면 카카오,
+     없으면 OpenStreetMap(Nominatim). 두 결과 모두 {id, lat, lng, name, addr}로 통일. ── */
+let kakaoLoader = null
+function loadKakao() {
+  if (!KAKAO_JS_KEY) return Promise.resolve(null)
+  if (!kakaoLoader) {
+    kakaoLoader = new Promise((resolve) => {
+      const s = document.createElement('script')
+      s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services`
+      s.onload = () => window.kakao.maps.load(() => resolve(window.kakao))
+      s.onerror = () => resolve(null) // 키가 틀리거나 차단되면 OSM으로 폴백
+      document.head.appendChild(s)
+    })
+  }
+  return kakaoLoader
+}
+
+async function searchKakao(kakao, query, b) {
+  const ps = new kakao.maps.services.Places()
+  const rect = `${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`
+  const list = await new Promise((resolve) => {
+    ps.keywordSearch(
+      query,
+      (result, status) => resolve(status === kakao.maps.services.Status.OK ? result : []),
+      { rect, size: 8 }
+    )
+  })
+  return list.map((p) => ({
+    id: 'k' + p.id,
+    lat: +p.y,
+    lng: +p.x,
+    name: p.place_name,
+    addr: p.road_address_name || p.address_name || '',
+  }))
+}
+
+async function searchOsm(query, b) {
+  // 검색 범위를 포커스한 구역 근처로 유도한다 (구역 밖 결과도 후순위로 허용).
+  const viewbox = `${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`
+  const url =
+    'https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=ko&countrycodes=kr&limit=8' +
+    `&viewbox=${viewbox}&q=${encodeURIComponent(query)}`
+  const res = await fetch(url, { headers: { Accept: 'application/json' } })
+  if (!res.ok) throw new Error('HTTP ' + res.status)
+  const data = await res.json()
+  const norm = data.map((r) => ({
+    id: 'o' + r.place_id,
+    lat: +r.lat,
+    lng: +r.lon,
+    name: (r.name || r.display_name.split(',')[0]).trim(),
+    addr: r.display_name
+      .split(',')
+      .slice(1, 4)
+      .map((s) => s.trim())
+      .reverse()
+      .join(' '),
+  }))
+  const inBox = norm.filter((r) => b.contains([r.lat, r.lng]))
+  return (inBox.length ? inBox : norm).slice(0, 6)
+}
 
 export default function MapTab({ db, me, trip, refresh }) {
   const mapEl = useRef(null)
@@ -232,7 +284,7 @@ export default function MapTab({ db, me, trip, refresh }) {
     else mapRef.current?.flyTo([r.lat, r.lng], 10) // 예전 데이터(코드 없음) 호환
   }
 
-  /* ── 장소 검색 (Nominatim) ── */
+  /* ── 장소 검색 실행 (카카오 우선, 없으면 OSM) ── */
   const runSearch = async (e) => {
     e?.preventDefault()
     const query = q.trim()
@@ -242,17 +294,9 @@ export default function MapTab({ db, me, trip, refresh }) {
     setSearchErr(false)
     setDraft(null)
     try {
-      const b = focus.bounds
-      // 검색 범위를 포커스한 구역 근처로 유도한다 (구역 밖 결과도 후순위로 허용).
-      const viewbox = `${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`
-      const url =
-        'https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=ko&countrycodes=kr&limit=8' +
-        `&viewbox=${viewbox}&q=${encodeURIComponent(query)}`
-      const res = await fetch(url, { headers: { Accept: 'application/json' } })
-      if (!res.ok) throw new Error('HTTP ' + res.status)
-      const data = await res.json()
-      const inBox = data.filter((r) => b.contains([+r.lat, +r.lon]))
-      setResults((inBox.length ? inBox : data).slice(0, 6))
+      const kakao = await loadKakao()
+      const list = kakao ? await searchKakao(kakao, query, focus.bounds) : await searchOsm(query, focus.bounds)
+      setResults(list)
     } catch (err) {
       console.error(err)
       setResults([])
@@ -263,14 +307,12 @@ export default function MapTab({ db, me, trip, refresh }) {
   }
 
   const pickResult = (r) => {
-    const lat = +r.lat
-    const lng = +r.lon
     const map = mapRef.current
-    map?.flyTo([lat, lng], Math.max(map.getZoom(), 15))
+    map?.flyTo([r.lat, r.lng], Math.max(map.getZoom(), 15))
     setResults(null)
     setQ('')
-    setDraft({ lat, lng })
-    setName(resultName(r).slice(0, 20))
+    setDraft({ lat: r.lat, lng: r.lng })
+    setName(r.name.slice(0, 20))
   }
 
   /* ── 장소 핀 + 연결선 그리기 ── */
@@ -390,9 +432,9 @@ export default function MapTab({ db, me, trip, refresh }) {
                 {results && results.length > 0 && (
                   <div className="search-results card">
                     {results.map((r, i) => (
-                      <button key={r.place_id || i} className="search-result" onClick={() => pickResult(r)}>
-                        <b>{resultName(r)}</b>
-                        <small>{resultAddr(r)}</small>
+                      <button key={r.id || i} className="search-result" onClick={() => pickResult(r)}>
+                        <b>{r.name}</b>
+                        <small>{r.addr}</small>
                       </button>
                     ))}
                   </div>
@@ -440,7 +482,11 @@ export default function MapTab({ db, me, trip, refresh }) {
         </div>
         {!ready && <div className="map-loading">지도를 준비하는 중…</div>}
       </div>
-      <p className="map-credit">거리 지도·장소 검색 © OpenStreetMap, 행정구역 경계: 통계청(KOSTAT)</p>
+      <p className="map-credit">
+        {KAKAO_JS_KEY
+          ? '거리 지도 © OpenStreetMap, 장소 검색: 카카오, 행정구역 경계: 통계청(KOSTAT)'
+          : '거리 지도·장소 검색 © OpenStreetMap, 행정구역 경계: 통계청(KOSTAT)'}
+      </p>
 
       {focus ? (
         <>

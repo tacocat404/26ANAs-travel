@@ -2,6 +2,11 @@
 
 ## 2026-07-24
 
+### [배포] 통합 main 첫 실배포 성공
+- **사용자 프롬프트(요약)**: 배포하고, 카카오에 https://tacocat404.github.io/26ANAs-travel/ 추가하면 되는지 질문.
+- **Claude의 변경사항**: 통합 main(b46d59b) push → GitHub Actions 자동 배포 성공. 배포 사이트에서 새 기능(홈 3탭) 반영 확인. 카카오 도메인 등록은 **경로 없이 `https://tacocat404.github.io`만** 등록하면 된다고 안내 (등록칸은 origin만 받음).
+- **다음 단계**: 운영자가 카카오 Web 플랫폼 도메인 등록(localhost:5173/5174 + tacocat404.github.io) → 카카오 검색 자동 활성화. 이후 Supabase 연결하면 친구와 실시간 공유 시작.
+
 ### [구현] 카카오 JavaScript 키 연결
 - **사용자 프롬프트(요약)**: 카카오 앱 키 스크린샷 전달. "이거 내 API키야, 지도 기능 개편하려고. 이름 적으면 핀 추가되게."
 - **Claude의 변경사항**: `src/config.js`의 `KAKAO_JS_KEY`에 JavaScript 키 입력. (REST API 키는 비밀키라 사용하지 않음 - 스크린샷으로 노출됐으니 카카오 콘솔에서 재발급 권장이라고 안내.)

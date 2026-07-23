@@ -616,12 +616,18 @@ textarea {
 .map.card {
   background: linear-gradient(168deg, #1d4f92 0%, #133a72 55%, #0d2a55 100%);
 }
-.map-overlay {
+.map-top {
   position: absolute;
   top: 14px;
   left: 14px;
   right: 14px;
   z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-overlay {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -717,6 +723,107 @@ button.map-chip:active {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+/* 지도 위 검색 (네이버지도식 오버레이) - .map-top 컬럼 안에서 칩 줄 아래에 놓인다 */
+.map-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 430px;
+  width: 100%;
+  pointer-events: none;
+}
+.map-search-wrap > * {
+  pointer-events: auto;
+}
+.map-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 6px 4px 14px;
+  box-shadow: var(--shadow);
+}
+.map-search svg {
+  flex-shrink: 0;
+  color: var(--sub);
+}
+.map-search input {
+  border: none;
+  background: none;
+  padding: 9px 0;
+  flex: 1;
+  min-width: 0;
+  border-radius: 0;
+}
+.map-search input:focus {
+  outline: none;
+}
+.search-go {
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: transform 0.12s var(--ease), opacity 0.15s;
+}
+.search-go:active {
+  transform: scale(0.95);
+}
+.search-go:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.search-clear {
+  display: inline-flex;
+  padding: 8px;
+  color: var(--sub);
+  border-radius: 50%;
+}
+.search-results {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 250px;
+  overflow-y: auto;
+  animation: rise 0.18s var(--ease) both;
+}
+.search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 10px;
+  width: 100%;
+}
+.search-result:hover,
+.search-result:focus-visible {
+  background: var(--bg);
+}
+.search-result b {
+  font-size: 14px;
+}
+.search-result small {
+  color: var(--sub);
+  font-size: 12px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-empty {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--sub);
+  font-size: 13px;
 }
 .pin-wrap {
   background: none;

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { ArrowLeft, MapPin, Plus, X } from '@phosphor-icons/react'
+import { ArrowLeft, MagnifyingGlass, MapPin, Plus, X } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { memberById, memberName } from './utils.js'
 
 /* ── 스타일 지도: 통계청(KOSTAT) 시군구 경계를 시도별 파스텔 색으로 칠한다.
-     확대(포커스) 모드에서만 실제 거리 지도가 나타나 장소 핀을 찍을 수 있다. ── */
+     확대(포커스) 모드에서만 실제 거리 지도가 나타나 장소 핀을 찍을 수 있다.
+     장소 검색은 OpenStreetMap Nominatim(무료, 키 없음)을 쓴다. ── */
 
 // KOSTAT 시도 코드 → 색상(hue). 인접한 도끼리 색이 겹치지 않게 배치.
 const HUES = {
@@ -49,6 +50,16 @@ function outerRings(feature) {
   return polys.map((rings) => rings[0].map(([lng, lat]) => [lat, lng]))
 }
 
+// Nominatim 결과에서 보여줄 짧은 이름/주소 추출
+const resultName = (r) => (r.name || r.display_name.split(',')[0]).trim()
+const resultAddr = (r) =>
+  r.display_name
+    .split(',')
+    .slice(1, 4)
+    .map((s) => s.trim())
+    .reverse()
+    .join(' ')
+
 export default function MapTab({ db, me, trip, refresh }) {
   const mapEl = useRef(null)
   const mapRef = useRef(null)
@@ -62,9 +73,17 @@ export default function MapTab({ db, me, trip, refresh }) {
   const chosenRef = useRef(new Set())
 
   const [ready, setReady] = useState(false)
-  const [focus, setFocus] = useState(null) // { code, name, center:{lat,lng} }
+  const [focus, setFocus] = useState(null) // { code, name, center, bounds }
   const [draft, setDraft] = useState(null)
   const [name, setName] = useState('')
+
+  // 장소 검색 (포커스 모드, Nominatim)
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState(null) // null=대기, []=결과 없음
+  const [searching, setSearching] = useState(false)
+  const [searchErr, setSearchErr] = useState(false)
+  // 구역 검색 (전국 지도, 로컬 데이터)
+  const [dq, setDq] = useState('')
 
   const regions = db.regions.filter((r) => r.trip_id === trip.id)
   const focusRegion = focus ? regions.find((r) => r.code === focus.code) : null
@@ -74,6 +93,10 @@ export default function MapTab({ db, me, trip, refresh }) {
         .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))
     : []
   const placeCount = (regionId) => db.places.filter((p) => p.region_id === regionId).length
+
+  const districtMatches = dq.trim()
+    ? featuresRef.current.filter((f) => f.properties.name.includes(dq.trim())).slice(0, 8)
+    : []
 
   /* ── 지도 초기화 ── */
   useEffect(() => {
@@ -146,6 +169,11 @@ export default function MapTab({ db, me, trip, refresh }) {
     }))
   }, [db.regions, trip.id, ready])
 
+  // 지도를 직접 탭해 초안 핀이 생기면 검색 결과 목록은 접는다.
+  useEffect(() => {
+    if (draft) setResults(null)
+  }, [draft])
+
   /* ── 포커스 진입/이탈 ── */
   const focusDistrict = (feat) => {
     const map = mapRef.current
@@ -153,8 +181,11 @@ export default function MapTab({ db, me, trip, refresh }) {
     const code = feat.properties.code
     const bounds = L.geoJSON(feat).getBounds()
     focusRef.current = code
-    setFocus({ code, name: feat.properties.name, center: bounds.getCenter() })
+    setFocus({ code, name: feat.properties.name, center: bounds.getCenter(), bounds })
     setDraft(null)
+    setQ('')
+    setResults(null)
+    setDq('')
     geoRef.current?.remove()
     labelsRef.current?.remove()
     if (!tilesRef.current)
@@ -186,6 +217,8 @@ export default function MapTab({ db, me, trip, refresh }) {
     setFocus(null)
     setDraft(null)
     setName('')
+    setQ('')
+    setResults(null)
     tilesRef.current?.remove()
     focusDecorRef.current?.remove()
     geoRef.current?.addTo(map)
@@ -197,6 +230,47 @@ export default function MapTab({ db, me, trip, refresh }) {
     const feat = featuresRef.current.find((f) => f.properties.code === r.code)
     if (feat) focusDistrict(feat)
     else mapRef.current?.flyTo([r.lat, r.lng], 10) // 예전 데이터(코드 없음) 호환
+  }
+
+  /* ── 장소 검색 (Nominatim) ── */
+  const runSearch = async (e) => {
+    e?.preventDefault()
+    const query = q.trim()
+    if (!query || !focus || searching) return
+    setSearching(true)
+    setResults(null)
+    setSearchErr(false)
+    setDraft(null)
+    try {
+      const b = focus.bounds
+      // 검색 범위를 포커스한 구역 근처로 유도한다 (구역 밖 결과도 후순위로 허용).
+      const viewbox = `${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`
+      const url =
+        'https://nominatim.openstreetmap.org/search?format=jsonv2&accept-language=ko&countrycodes=kr&limit=8' +
+        `&viewbox=${viewbox}&q=${encodeURIComponent(query)}`
+      const res = await fetch(url, { headers: { Accept: 'application/json' } })
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      const data = await res.json()
+      const inBox = data.filter((r) => b.contains([+r.lat, +r.lon]))
+      setResults((inBox.length ? inBox : data).slice(0, 6))
+    } catch (err) {
+      console.error(err)
+      setResults([])
+      setSearchErr(true)
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const pickResult = (r) => {
+    const lat = +r.lat
+    const lng = +r.lon
+    const map = mapRef.current
+    map?.flyTo([lat, lng], Math.max(map.getZoom(), 15))
+    setResults(null)
+    setQ('')
+    setDraft({ lat, lng })
+    setName(resultName(r).slice(0, 20))
   }
 
   /* ── 장소 핀 + 연결선 그리기 ── */
@@ -269,6 +343,7 @@ export default function MapTab({ db, me, trip, refresh }) {
     <div className="tab-body wide">
       <div className="map-wrap">
         <div ref={mapEl} className={'map card' + (focus ? ' focused' : '')} />
+        <div className="map-top">
         <div className="map-overlay">
           {focus ? (
             <>
@@ -291,17 +366,86 @@ export default function MapTab({ db, me, trip, refresh }) {
               )}
             </>
           ) : (
-            ready && <span className="map-chip">가고 싶은 지역을 탭해 보세요</span>
+            ready && <span className="map-chip">가고 싶은 지역을 탭하거나 검색해 보세요</span>
           )}
+        </div>
+
+        {ready && (
+          <div className="map-search-wrap">
+            {focus ? (
+              <>
+                <form className="map-search" onSubmit={runSearch}>
+                  <MagnifyingGlass size={17} weight="bold" />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder={`${focus.name} 안에서 장소 검색`}
+                    maxLength={30}
+                    enterKeyHint="search"
+                  />
+                  <button className="search-go" disabled={!q.trim() || searching}>
+                    {searching ? '찾는 중' : '검색'}
+                  </button>
+                </form>
+                {results && results.length > 0 && (
+                  <div className="search-results card">
+                    {results.map((r, i) => (
+                      <button key={r.place_id || i} className="search-result" onClick={() => pickResult(r)}>
+                        <b>{resultName(r)}</b>
+                        <small>{resultAddr(r)}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {results && results.length === 0 && (
+                  <div className="search-results card">
+                    <p className="search-empty">
+                      {searchErr
+                        ? '검색이 잠시 안 돼요. 조금 뒤에 다시 해보세요.'
+                        : '못 찾았어요. 다른 이름으로 검색하거나, 지도를 직접 탭해 핀을 찍어보세요.'}
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="map-search">
+                  <MagnifyingGlass size={17} weight="bold" />
+                  <input
+                    value={dq}
+                    onChange={(e) => setDq(e.target.value)}
+                    placeholder="지역 이름으로 찾기 (예: 속초)"
+                    maxLength={20}
+                  />
+                  {dq && (
+                    <button type="button" className="search-clear" onClick={() => setDq('')} aria-label="지우기">
+                      <X size={15} weight="bold" />
+                    </button>
+                  )}
+                </div>
+                {dq.trim() && (
+                  <div className="search-results card">
+                    {districtMatches.length === 0 && <p className="search-empty">일치하는 지역이 없어요.</p>}
+                    {districtMatches.map((f) => (
+                      <button key={f.properties.code} className="search-result" onClick={() => focusDistrict(f)}>
+                        <b>{f.properties.name}</b>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
         </div>
         {!ready && <div className="map-loading">지도를 준비하는 중…</div>}
       </div>
-      <p className="map-credit">거리 지도 © OpenStreetMap, 행정구역 경계: 통계청(KOSTAT)</p>
+      <p className="map-credit">거리 지도·장소 검색 © OpenStreetMap, 행정구역 경계: 통계청(KOSTAT)</p>
 
       {focus ? (
         <>
           <p className="hint">
-            확대된 지도를 탭하면 <b>갈 곳(맛집, 명소)</b>이 번호 핀으로 찍히고, 찍은 순서대로 선이 이어져요.
+            장소를 <b>검색</b>하거나 지도를 <b>직접 탭</b>하면 번호 핀이 찍히고, 찍은 순서대로 선이 이어져요.
           </p>
           {draft && (
             <form className="card form" onSubmit={addPlace}>
@@ -353,7 +497,7 @@ export default function MapTab({ db, me, trip, refresh }) {
           {places.length === 0 && !draft && (
             <div className="empty card">
               <MapPin size={30} weight="duotone" />
-              <span>아직 찍은 곳이 없어요. 지도를 탭해 첫 핀을 찍어보세요.</span>
+              <span>아직 찍은 곳이 없어요. 위 검색창이나 지도 탭으로 첫 핀을 찍어보세요.</span>
             </div>
           )}
         </>

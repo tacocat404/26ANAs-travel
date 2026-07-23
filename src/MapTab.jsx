@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { MapPin, X } from '@phosphor-icons/react'
 import { store } from './store.js'
-import { memberName } from './utils.js'
+import { memberById, memberName } from './utils.js'
+
+// 핀은 추가한 사람의 색으로 칠해진다. (앱 전체 원칙: 색 = 사람)
+const pinIcon = (color, draft = false) =>
+  L.divIcon({
+    className: 'pin-wrap',
+    html: `<span class="pin-dot${draft ? ' draft' : ''}"${color ? ` style="--pc:${color}"` : ''}></span>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 20],
+  })
 
 export default function MapTab({ db, me, trip, refresh }) {
   const mapEl = useRef(null)
@@ -32,12 +42,12 @@ export default function MapTab({ db, me, trip, refresh }) {
     const layer = layerRef.current
     if (!layer) return
     layer.clearLayers()
-    const pin = (html, cls) => L.divIcon({ className: 'pin ' + cls, html, iconSize: [28, 28], iconAnchor: [14, 26] })
     for (const r of regions) {
-      L.marker([r.lat, r.lng], { icon: pin('📍', '') }).addTo(layer).bindPopup(r.name)
+      const color = memberById(db, r.added_by)?.color
+      L.marker([r.lat, r.lng], { icon: pinIcon(color) }).addTo(layer).bindPopup(r.name)
     }
-    if (draft) L.marker([draft.lat, draft.lng], { icon: pin('❓', 'draft') }).addTo(layer)
-  }, [db.regions, draft, trip.id])
+    if (draft) L.marker([draft.lat, draft.lng], { icon: pinIcon(null, true) }).addTo(layer)
+  }, [db.regions, db.members, draft, trip.id])
 
   const addDraft = async (e) => {
     e.preventDefault()
@@ -49,8 +59,10 @@ export default function MapTab({ db, me, trip, refresh }) {
   }
 
   return (
-    <div>
-      <p className="hint">🗺️ 지도를 탭해서 가고 싶은 후보지를 추가해 보세요.</p>
+    <div className="tab-body">
+      <p className="hint">
+        지도를 탭해서 가고 싶은 후보지를 추가해 보세요. 핀 색깔은 <b>추가한 사람의 색</b>이에요.
+      </p>
       <div ref={mapEl} className="map card" />
       {draft && (
         <form className="card form" onSubmit={addDraft}>
@@ -72,12 +84,18 @@ export default function MapTab({ db, me, trip, refresh }) {
           </div>
         </form>
       )}
-      {regions.length === 0 && !draft && <div className="empty card">아직 후보지가 없어요. 지도를 탭해 보세요! 📍</div>}
+      {regions.length === 0 && !draft && (
+        <div className="empty card">
+          <MapPin size={30} weight="duotone" />
+          <span>아직 후보지가 없어요. 지도를 탭해 보세요.</span>
+        </div>
+      )}
       <ul className="region-list">
         {regions.map((r) => (
           <li key={r.id} className="card region-item">
             <button className="region-name" onClick={() => mapRef.current?.flyTo([r.lat, r.lng], 10)}>
-              📍 {r.name}
+              <MapPin size={16} weight="fill" color={memberById(db, r.added_by)?.color} />
+              {r.name}
             </button>
             <small>{memberName(db, r.added_by)} 추가</small>
             <button
@@ -90,7 +108,7 @@ export default function MapTab({ db, me, trip, refresh }) {
               }}
               aria-label="삭제"
             >
-              ✕
+              <X size={16} weight="bold" />
             </button>
           </li>
         ))}

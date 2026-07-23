@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Megaphone, PushPin, X } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { memberById } from './utils.js'
 
@@ -18,7 +19,7 @@ export default function NoticeTab({ db, me, trip, refresh }) {
   }
 
   return (
-    <div>
+    <div className="tab-body">
       <form className="card form" onSubmit={submit}>
         <textarea
           value={text}
@@ -31,7 +32,12 @@ export default function NoticeTab({ db, me, trip, refresh }) {
           공지 올리기
         </button>
       </form>
-      {notices.length === 0 && <div className="empty card">아직 공지가 없어요 📢</div>}
+      {notices.length === 0 && (
+        <div className="empty card">
+          <Megaphone size={30} weight="duotone" />
+          <span>아직 공지가 없어요.</span>
+        </div>
+      )}
       {notices.map((n) => {
         const author = memberById(db, n.member_id)
         return (
@@ -41,7 +47,7 @@ export default function NoticeTab({ db, me, trip, refresh }) {
                 <i style={{ background: author?.color }} />
                 {author?.name || '알 수 없음'}
               </span>
-              <small>{(n.created_at || '').slice(0, 10).replaceAll('-', '.')}</small>
+              <small className="num">{(n.created_at || '').slice(0, 10).replaceAll('-', '.')}</small>
               <span className="notice-btns">
                 <button
                   className={'ghost-icon' + (n.pinned ? ' on' : '')}
@@ -51,7 +57,7 @@ export default function NoticeTab({ db, me, trip, refresh }) {
                     refresh()
                   }}
                 >
-                  📌
+                  <PushPin size={16} weight={n.pinned ? 'fill' : 'regular'} />
                 </button>
                 {n.member_id === me.id && (
                   <button
@@ -64,7 +70,7 @@ export default function NoticeTab({ db, me, trip, refresh }) {
                       }
                     }}
                   >
-                    ✕
+                    <X size={16} />
                   </button>
                 )}
               </span>

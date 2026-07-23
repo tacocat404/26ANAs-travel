@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus, CalendarBlank, MapPin, Megaphone, Images, CaretRight, AirplaneTilt } from '@phosphor-icons/react'
 import { store } from './store.js'
 
 const EMOJIS = ['🏝️', '⛰️', '🏙️', '🎿', '🏕️', '🌸', '🍜', '🚗', '✈️', '🚆']
@@ -42,7 +43,12 @@ export default function TripList({ db, me, refresh, onOpen }) {
       <div className="section-head">
         <h2>우리 여행</h2>
         <button className="primary small" onClick={() => setAdding((v) => !v)}>
-          {adding ? '닫기' : '+ 여행 추가'}
+          {adding ? '닫기' : (
+            <>
+              <Plus size={15} weight="bold" />
+              여행 추가
+            </>
+          )}
         </button>
       </div>
 
@@ -79,9 +85,12 @@ export default function TripList({ db, me, refresh, onOpen }) {
 
       {trips.length === 0 && !adding && (
         <div className="empty card">
-          아직 여행이 없어요.
-          <br />
-          <b>+ 여행 추가</b>로 첫 여행을 만들어 보세요! ✈️
+          <AirplaneTilt size={30} weight="duotone" />
+          <span>
+            아직 여행이 없어요.
+            <br />
+            <b>여행 추가</b>로 첫 여행을 만들어 보세요.
+          </span>
         </div>
       )}
 
@@ -91,12 +100,24 @@ export default function TripList({ db, me, refresh, onOpen }) {
             <span className="trip-emoji">{t.emoji}</span>
             <span className="trip-info">
               <b>{t.title}</b>
-              <small>🗓️ {fmtPeriod(t)}</small>
-              <small>
-                📍 후보지 {count(db.regions, t.id)} · 📢 공지 {count(db.notices, t.id)} · 📷 사진 {count(db.photos, t.id)}
+              <small className="trip-meta">
+                <CalendarBlank size={13} />
+                {fmtPeriod(t)}
+              </small>
+              <small className="trip-meta num">
+                <MapPin size={13} />
+                {count(db.regions, t.id)}
+                <span className="gap" />
+                <Megaphone size={13} />
+                {count(db.notices, t.id)}
+                <span className="gap" />
+                <Images size={13} />
+                {count(db.photos, t.id)}
               </small>
             </span>
-            <span className="chev">›</span>
+            <span className="chev">
+              <CaretRight size={18} />
+            </span>
           </button>
         ))}
       </div>

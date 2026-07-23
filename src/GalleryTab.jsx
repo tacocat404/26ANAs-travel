@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Images } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { compressImage, memberName } from './utils.js'
 
@@ -30,12 +31,18 @@ export default function GalleryTab({ db, me, trip, refresh }) {
   }
 
   return (
-    <div>
+    <div className="tab-body">
       <label className={'upload-btn primary' + (uploading ? ' disabled' : '')}>
-        {uploading ? '올리는 중…' : '📷 사진 올리기'}
+        <Images size={18} weight="bold" />
+        {uploading ? '올리는 중…' : '사진 올리기'}
         <input type="file" accept="image/*" multiple hidden onChange={onFile} disabled={uploading} />
       </label>
-      {photos.length === 0 && <div className="empty card">아직 사진이 없어요. 숙소·맛집 스크린샷도 좋아요! 📷</div>}
+      {photos.length === 0 && (
+        <div className="empty card">
+          <Images size={30} weight="duotone" />
+          <span>아직 사진이 없어요. 숙소나 맛집 스크린샷도 좋아요.</span>
+        </div>
+      )}
       <div className="photo-grid">
         {photos.map((p) => (
           <button key={p.id} className="photo-cell" onClick={() => setViewer(p)}>
@@ -47,7 +54,7 @@ export default function GalleryTab({ db, me, trip, refresh }) {
         <div className="viewer" onClick={() => setViewer(null)}>
           <img src={viewer.data_url} alt="" onClick={(e) => e.stopPropagation()} />
           <div className="viewer-bar" onClick={(e) => e.stopPropagation()}>
-            <span>
+            <span className="num">
               {memberName(db, viewer.member_id)} · {(viewer.created_at || '').slice(0, 10).replaceAll('-', '.')}
             </span>
             {viewer.member_id === me.id && (

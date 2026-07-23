@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CalendarBlank, MapPin, Megaphone, Images } from '@phosphor-icons/react'
 import { store } from './store.js'
 import CalendarTab from './CalendarTab.jsx'
 import MapTab from './MapTab.jsx'
@@ -6,10 +7,10 @@ import NoticeTab from './NoticeTab.jsx'
 import GalleryTab from './GalleryTab.jsx'
 
 const TABS = [
-  ['cal', '🗓️', '캘린더'],
-  ['map', '🗺️', '지도'],
-  ['notice', '📢', '공지'],
-  ['gallery', '📷', '갤러리'],
+  ['cal', '캘린더', CalendarBlank],
+  ['map', '지도', MapPin],
+  ['notice', '공지', Megaphone],
+  ['gallery', '갤러리', Images],
 ]
 
 export default function TripDetail({ db, me, trip, refresh, onDeleted }) {
@@ -17,9 +18,9 @@ export default function TripDetail({ db, me, trip, refresh, onDeleted }) {
   return (
     <main className="page">
       <nav className="tabs">
-        {TABS.map(([k, icon, label]) => (
+        {TABS.map(([k, label, Icon]) => (
           <button key={k} className={'tab' + (tab === k ? ' on' : '')} onClick={() => setTab(k)}>
-            <span>{icon}</span>
+            <Icon size={18} weight={tab === k ? 'fill' : 'regular'} />
             {label}
           </button>
         ))}

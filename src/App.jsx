@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { AirplaneTilt, CaretLeft } from '@phosphor-icons/react'
 import { store } from './store.js'
 import Login from './Login.jsx'
 import TripList from './TripList.jsx'
@@ -58,10 +59,13 @@ export default function App() {
       <header className="topbar">
         {trip ? (
           <button className="back" onClick={() => setView({ page: 'home', tripId: null })} aria-label="뒤로">
-            ‹
+            <CaretLeft size={22} weight="bold" />
           </button>
         ) : (
-          <span className="logo">🛫 언제갈까?</span>
+          <span className="logo">
+            <AirplaneTilt size={19} weight="fill" />
+            언제갈까
+          </span>
         )}
         {trip && (
           <span className="topbar-title">
@@ -83,7 +87,7 @@ export default function App() {
       </header>
       {store.demo && (
         <div className="demo-banner">
-          🧪 데모 모드 — 지금은 이 기기에만 저장돼요. 친구와 공유하려면 <b>docs/SETUP.md</b>를 따라 연결하세요.
+          데모 모드 · 지금은 이 기기에만 저장돼요. 친구와 공유하려면 <b>docs/SETUP.md</b>를 따라 연결하세요.
         </div>
       )}
       {trip ? (

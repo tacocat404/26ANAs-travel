@@ -5,9 +5,12 @@ export default function Login({ members, onLogin }) {
   return (
     <div className="login">
       <div className="login-hero">
-        <div className="login-emoji">🏝️</div>
-        <h1>언제갈까?</h1>
-        <p>친구들과 여행 날짜 정하는 캘린더</p>
+        <h1 className="login-title">
+          언제
+          <br />
+          갈까<em>?</em>
+        </h1>
+        <p className="login-sub">친구들의 안 되는 날을 한 캘린더에 모아, 모두 갈 수 있는 여행 날짜를 찾아요.</p>
       </div>
       {members.length > 0 && (
         <>
@@ -39,7 +42,7 @@ export default function Login({ members, onLogin }) {
           시작하기
         </button>
       </form>
-      <p className="login-note">비밀번호 없이 이름만으로 시작해요 ✌️</p>
+      <p className="login-note">비밀번호 없이 이름만으로 시작해요.</p>
     </div>
   )
 }

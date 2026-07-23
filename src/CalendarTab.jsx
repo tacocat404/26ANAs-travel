@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { memberById } from './utils.js'
 
@@ -7,7 +8,8 @@ const p2 = (n) => String(n).padStart(2, '0')
 
 export default function CalendarTab({ db, me, trip, refresh }) {
   const today = new Date()
-  const thisMonth = `${today.getFullYear()}-${p2(today.getMonth() + 1)}`
+  const todayStr = `${today.getFullYear()}-${p2(today.getMonth() + 1)}-${p2(today.getDate())}`
+  const thisMonth = todayStr.slice(0, 7)
   const [ym, setYm] = useState(trip.start_month || thisMonth)
   const [selected, setSelected] = useState(null)
   const [year, month] = ym.split('-').map(Number)
@@ -38,17 +40,22 @@ export default function CalendarTab({ db, me, trip, refresh }) {
   const selBusy = selected ? busy[selected] || [] : null
 
   return (
-    <div>
+    <div className="tab-body">
       <p className="hint">
-        📅 날짜를 탭하면 <b>내가 안 되는 날</b>로 표시돼요 (다시 탭하면 취소). 친구들이 안 되는 날은 색깔 점으로 보여요.
+        날짜를 탭하면 <b>내가 안 되는 날</b>로 표시돼요. 다시 탭하면 취소되고, 친구들이 안 되는 날은 색깔 점으로
+        보여요.
       </p>
       <div className="cal card">
         <div className="cal-head">
-          <button onClick={() => move(-1)} aria-label="이전 달">‹</button>
-          <b>
+          <button onClick={() => move(-1)} aria-label="이전 달">
+            <CaretLeft size={18} weight="bold" />
+          </button>
+          <b className="num">
             {year}년 {month}월
           </b>
-          <button onClick={() => move(1)} aria-label="다음 달">›</button>
+          <button onClick={() => move(1)} aria-label="다음 달">
+            <CaretRight size={18} weight="bold" />
+          </button>
         </div>
         <div className="cal-grid">
           {WEEK.map((w, i) => (
@@ -69,6 +76,7 @@ export default function CalendarTab({ db, me, trip, refresh }) {
                   'cal-day' +
                   (mine ? ' mine' : '') +
                   (selected === date ? ' sel' : '') +
+                  (date === todayStr ? ' today' : '') +
                   (dow === 0 ? ' sun' : dow === 6 ? ' sat' : '')
                 }
                 style={mine ? { '--c': me.color } : undefined}
@@ -89,9 +97,9 @@ export default function CalendarTab({ db, me, trip, refresh }) {
 
       {selected && (
         <div className="card day-panel">
-          <b>{selected.replaceAll('-', '.')}</b>
+          <b className="num">{selected.replaceAll('-', '.')}</b>
           {selBusy.length === 0 ? (
-            <p>이 날 안 되는 사람이 없어요! 🎉</p>
+            <p>이 날은 모두 갈 수 있어요!</p>
           ) : (
             <p className="pill-row">
               안 되는 사람:{' '}

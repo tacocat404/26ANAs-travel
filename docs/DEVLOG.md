@@ -2,6 +2,11 @@
 
 ## 2026-07-24
 
+### [배포] GitHub 원격 저장소 연결 + 첫 push
+- **사용자 프롬프트(요약)**: 배포하겠다며 저장소 주소(https://github.com/tacocat404/-.git) 전달.
+- **Claude의 변경사항**: origin 등록, main + feature/map 브랜치 push. CLAUDE.md/HANDOFF.md에 저장소 주소 기록.
+- **다음 단계**: 운영자가 vercel.com → Add New Project → `tacocat404/-` 선택 → Deploy (설정 변경 불필요). 배포 주소가 나오면 알려줄 것 (카카오 도메인 등록·공유에 필요). 주의: Supabase 연결 전이라 배포판도 "기기별 저장" 데모 모드.
+
 ### [자동화] 브랜치/worktree 병렬 작업 체계 도입
 - **사용자 프롬프트(요약)**: git worktree로 분류해서 대화(세션)마다 브랜치를 나눠 작업하겠다. 이 세션은 지도 기능 개편 브랜치.
 - **Claude의 변경사항**: `feature/map` 브랜치 + 전용 폴더 `C:\기미주\일정캘린더-map`(worktree) 생성, npm 의존성 설치, 미리보기 포트 5174 등록. 운영 규칙을 HANDOFF.md에 문서화(main은 안정 버전, 기능 작업은 각 브랜치 폴더에서, merge는 운영자 지시 시).

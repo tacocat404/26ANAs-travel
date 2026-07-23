@@ -10,7 +10,7 @@
 ## 프로젝트 소개
 - 프로젝트 이름: 언제갈까? (여행 일정 캘린더)
 - 목적: 친구들이 각자 "안 되는 날"을 색깔로 표시해 모두 갈 수 있는 여행 날짜를 찾는 웹앱
-- 저장소/배포: 아직 없음 (예정: GitHub tacocat404 + Vercel — 절차는 `docs/SETUP.md`)
+- 저장소/배포: GitHub `tacocat404/-` (https://github.com/tacocat404/-) · Vercel 연결 예정 — 절차는 `docs/SETUP.md`. main에 push = 배포(연결 후).
 
 ## 작업 로그 (필수)
 - **모든 작업(코딩/기획/배포/콘텐츠)이 끝나면 반드시 `docs/DEVLOG.md`에 항목을 추가한다.**

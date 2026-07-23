@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { Images, WarningCircle } from '@phosphor-icons/react'
 import { store } from './store.js'
-import { useConfirm } from './confirm.jsx'
-import { compressImage, memberName } from './utils.js'
+import { compressImage } from './utils.js'
+import PhotoViewer from './PhotoViewer.jsx'
 
 export default function GalleryTab({ db, me, trip, refresh }) {
   const [viewer, setViewer] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
-  const confirmDlg = useConfirm()
 
   const photos = db.photos
     .filter((p) => p.trip_id === trip.id)
@@ -60,30 +59,7 @@ export default function GalleryTab({ db, me, trip, refresh }) {
           </button>
         ))}
       </div>
-      {viewer && (
-        <div className="viewer" onClick={() => setViewer(null)}>
-          <img src={viewer.data_url} alt="" onClick={(e) => e.stopPropagation()} />
-          <div className="viewer-bar" onClick={(e) => e.stopPropagation()}>
-            <span className="num">
-              {memberName(db, viewer.member_id)} · {(viewer.created_at || '').slice(0, 10).replaceAll('-', '.')}
-            </span>
-            {viewer.member_id === me.id && (
-              <button
-                onClick={async () => {
-                  if (await confirmDlg('이 사진을 삭제할까요?', { okLabel: '삭제', danger: true })) {
-                    await store.removePhoto(viewer.id)
-                    setViewer(null)
-                    refresh()
-                  }
-                }}
-              >
-                삭제
-              </button>
-            )}
-            <button onClick={() => setViewer(null)}>닫기</button>
-          </div>
-        </div>
-      )}
+      <PhotoViewer db={db} me={me} photo={viewer} onClose={() => setViewer(null)} refresh={refresh} />
     </div>
   )
 }

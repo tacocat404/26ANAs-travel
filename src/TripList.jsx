@@ -40,7 +40,7 @@ export default function TripList({ db, me, refresh, onOpen }) {
   const trips = [...db.trips].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
 
   return (
-    <main className="page">
+    <div className="tab-body">
       <div className="section-head">
         <h2>우리 여행</h2>
         <button className="primary small" onClick={() => setAdding((v) => !v)}>
@@ -128,6 +128,6 @@ export default function TripList({ db, me, refresh, onOpen }) {
         <MemberLegend db={db} me={me} />
         <p className="sub-note">친구에게 링크를 알려주면, 이름만 입력하고 바로 참여할 수 있어요.</p>
       </section>
-    </main>
+    </div>
   )
 }

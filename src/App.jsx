@@ -3,7 +3,7 @@ import { AirplaneTilt, CaretLeft } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
 import Login from './Login.jsx'
-import TripList from './TripList.jsx'
+import Home from './Home.jsx'
 import TripDetail from './TripDetail.jsx'
 
 const ME_KEY = 'trip-cal-me'
@@ -13,6 +13,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [meId, setMeId] = useState(localStorage.getItem(ME_KEY) || '')
   const [view, setView] = useState({ page: 'home', tripId: null })
+  const [homeTab, setHomeTab] = useState('trips') // 여행에 다녀와도 홈에서 보던 탭 유지
   const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {
@@ -101,7 +102,14 @@ export default function App() {
           onDeleted={() => setView({ page: 'home', tripId: null })}
         />
       ) : (
-        <TripList db={db} me={me} refresh={refresh} onOpen={(id) => setView({ page: 'trip', tripId: id })} />
+        <Home
+          db={db}
+          me={me}
+          refresh={refresh}
+          tab={homeTab}
+          setTab={setHomeTab}
+          onOpen={(id) => setView({ page: 'trip', tripId: id })}
+        />
       )}
     </div>
   )

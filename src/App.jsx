@@ -13,7 +13,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [meId, setMeId] = useState(localStorage.getItem(ME_KEY) || '')
   const [view, setView] = useState({ page: 'home', tripId: null })
-  const [homeTab, setHomeTab] = useState('trips') // 여행에 다녀와도 홈에서 보던 탭 유지
+  const [homeTab, setHomeTab] = useState('ongoing') // 여행에 다녀와도 홈에서 보던 탭 유지
   const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {

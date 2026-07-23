@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { Images } from '@phosphor-icons/react'
+import { Images, WarningCircle } from '@phosphor-icons/react'
 import { store } from './store.js'
+import { useConfirm } from './confirm.jsx'
 import { compressImage, memberName } from './utils.js'
 
 export default function GalleryTab({ db, me, trip, refresh }) {
   const [viewer, setViewer] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const confirmDlg = useConfirm()
 
   const photos = db.photos
     .filter((p) => p.trip_id === trip.id)
@@ -16,6 +19,7 @@ export default function GalleryTab({ db, me, trip, refresh }) {
     e.target.value = ''
     if (!files.length) return
     setUploading(true)
+    setUploadError('')
     try {
       for (const f of files) {
         const data_url = await compressImage(f)
@@ -24,7 +28,7 @@ export default function GalleryTab({ db, me, trip, refresh }) {
       refresh()
     } catch (err) {
       console.error(err)
-      alert('사진을 올리지 못했어요. 다른 사진으로 다시 시도해 주세요.')
+      setUploadError('사진을 올리지 못했어요. 다른 사진으로 다시 시도해 주세요.')
     } finally {
       setUploading(false)
     }
@@ -37,6 +41,12 @@ export default function GalleryTab({ db, me, trip, refresh }) {
         {uploading ? '올리는 중…' : '사진 올리기'}
         <input type="file" accept="image/*" multiple hidden onChange={onFile} disabled={uploading} />
       </label>
+      {uploadError && (
+        <p className="inline-error">
+          <WarningCircle size={16} weight="bold" />
+          {uploadError}
+        </p>
+      )}
       {photos.length === 0 && (
         <div className="empty card">
           <Images size={30} weight="duotone" />
@@ -60,7 +70,7 @@ export default function GalleryTab({ db, me, trip, refresh }) {
             {viewer.member_id === me.id && (
               <button
                 onClick={async () => {
-                  if (confirm('이 사진을 삭제할까요?')) {
+                  if (await confirmDlg('이 사진을 삭제할까요?', { okLabel: '삭제', danger: true })) {
                     await store.removePhoto(viewer.id)
                     setViewer(null)
                     refresh()

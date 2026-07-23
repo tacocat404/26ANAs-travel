@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AirplaneTilt, CaretLeft } from '@phosphor-icons/react'
 import { store } from './store.js'
+import { useConfirm } from './confirm.jsx'
 import Login from './Login.jsx'
 import TripList from './TripList.jsx'
 import TripDetail from './TripDetail.jsx'
@@ -12,6 +13,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [meId, setMeId] = useState(localStorage.getItem(ME_KEY) || '')
   const [view, setView] = useState({ page: 'home', tripId: null })
+  const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {
     try {
@@ -75,8 +77,8 @@ export default function App() {
         <button
           className="me-chip"
           style={{ '--c': me.color }}
-          onClick={() => {
-            if (confirm('다른 이름으로 로그인할까요?')) {
+          onClick={async () => {
+            if (await confirmDlg('다른 이름으로 로그인할까요?', { okLabel: '이름 바꾸기' })) {
               localStorage.removeItem(ME_KEY)
               setMeId('')
             }

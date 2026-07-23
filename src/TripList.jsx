@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, CalendarBlank, MapPin, Megaphone, Images, CaretRight, AirplaneTilt } from '@phosphor-icons/react'
 import { store } from './store.js'
+import MemberLegend from './MemberLegend.jsx'
 
 const EMOJIS = ['🏝️', '⛰️', '🏙️', '🎿', '🏕️', '🌸', '🍜', '🚗', '✈️', '🚆']
 
@@ -124,15 +125,7 @@ export default function TripList({ db, me, refresh, onOpen }) {
 
       <section className="card members-card">
         <h3>함께하는 친구들</h3>
-        <div className="legend">
-          {db.members.map((m) => (
-            <span key={m.id} className="legend-item">
-              <i style={{ background: m.color }} />
-              {m.name}
-              {m.id === me.id ? ' (나)' : ''}
-            </span>
-          ))}
-        </div>
+        <MemberLegend db={db} me={me} />
         <p className="sub-note">친구에게 링크를 알려주면, 이름만 입력하고 바로 참여할 수 있어요.</p>
       </section>
     </main>

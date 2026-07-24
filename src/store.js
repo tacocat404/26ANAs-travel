@@ -3,7 +3,11 @@
 //  · 공유 모드: Supabase에 저장. src/config.js에 키가 있으면 자동 활성화.
 // 두 모드 모두 같은 함수 이름/데이터 모양(snake_case)을 쓴다.
 import { createClient } from '@supabase/supabase-js'
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
+import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_ACCESS_CODE, DEFAULT_ADMIN_PIN } from './config.js'
+
+// 관리자 패널이 못 바꾼 초기값. DB settings에 값이 있으면 그게 우선.
+const SETTING_DEFAULTS = { access_code: DEFAULT_ACCESS_CODE, admin_pin: DEFAULT_ADMIN_PIN }
+const LS_SETTINGS = 'trip-cal-settings'
 
 export const MEMBER_COLORS = [
   '#FF6B6B', '#4D96FF', '#6BCB77', '#FFB830', '#9B5DE5',
@@ -114,6 +118,25 @@ const localStore = {
     db.photos = db.photos.filter((p) => p.id !== id)
     lsWrite(db)
   },
+  // 입장 코드 / 관리자 PIN (데모: localStorage)
+  async getSettings() {
+    try {
+      return { ...SETTING_DEFAULTS, ...(JSON.parse(localStorage.getItem(LS_SETTINGS)) || {}) }
+    } catch {
+      return { ...SETTING_DEFAULTS }
+    }
+  },
+  async setSetting(key, value) {
+    const cur = await this.getSettings()
+    localStorage.setItem(LS_SETTINGS, JSON.stringify({ ...cur, [key]: value }))
+  },
+  // 관리자용: 멤버 삭제 (그 사람의 '안 되는 날'도 함께)
+  async removeMember(id) {
+    const db = lsRead()
+    db.members = db.members.filter((m) => m.id !== id)
+    db.unavailable = db.unavailable.filter((u) => u.member_id !== id)
+    lsWrite(db)
+  },
 }
 
 const sb = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
@@ -180,6 +203,23 @@ const remoteStore = {
   },
   async removePhoto(id) {
     q(await sb.from('photos').delete().eq('id', id))
+  },
+  // 입장 코드 / 관리자 PIN — settings 테이블. 테이블이 아직 없으면 기본값으로 폴백.
+  async getSettings() {
+    try {
+      const rows = q(await sb.from('settings').select('key,value'))
+      const out = { ...SETTING_DEFAULTS }
+      for (const r of rows) out[r.key] = r.value
+      return out
+    } catch {
+      return { ...SETTING_DEFAULTS }
+    }
+  },
+  async setSetting(key, value) {
+    q(await sb.from('settings').upsert({ key, value }, { onConflict: 'key' }))
+  },
+  async removeMember(id) {
+    q(await sb.from('members').delete().eq('id', id))
   },
 }
 

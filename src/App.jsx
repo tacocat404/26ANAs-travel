@@ -1,19 +1,29 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AirplaneTilt, CaretLeft } from '@phosphor-icons/react'
+import { AirplaneTilt, CaretLeft, GearSix } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
+import Landing from './Landing.jsx'
+import Gate from './Gate.jsx'
 import Login from './Login.jsx'
 import Home from './Home.jsx'
 import TripDetail from './TripDetail.jsx'
+import AdminPanel from './AdminPanel.jsx'
 
 const ME_KEY = 'trip-cal-me'
+const ENTERED_KEY = 'trip-cal-entered' // 입장 코드를 한 번 맞히면 이 기기에선 다시 안 물음
 
 export default function App() {
   const [db, setDb] = useState(null)
+  const [settings, setSettings] = useState(null)
   const [error, setError] = useState('')
   const [meId, setMeId] = useState(localStorage.getItem(ME_KEY) || '')
   const [view, setView] = useState({ page: 'home', tripId: null })
-  const [homeTab, setHomeTab] = useState('ongoing') // 여행에 다녀와도 홈에서 보던 탭 유지
+  const [homeTab, setHomeTab] = useState('ongoing')
+  const [entered, setEntered] = useState(localStorage.getItem(ENTERED_KEY) === '1')
+  const [gateOpen, setGateOpen] = useState(false) // 랜딩 → 입장 코드
+  const [adminGate, setAdminGate] = useState(false) // 관리자 PIN 입력 중
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [adminView, setAdminView] = useState(false)
   const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {
@@ -26,11 +36,19 @@ export default function App() {
     }
   }, [])
 
+  const refreshSettings = useCallback(async () => {
+    try {
+      setSettings(await store.getSettings())
+    } catch {
+      setSettings({})
+    }
+  }, [])
+
   useEffect(() => {
     refresh()
-  }, [refresh])
+    refreshSettings()
+  }, [refresh, refreshSettings])
 
-  // 다른 친구가 올린 내용이 보이도록, 화면에 다시 돌아올 때마다 새로 불러온다.
   useEffect(() => {
     const onFocus = () => refresh()
     window.addEventListener('focus', onFocus)
@@ -38,8 +56,27 @@ export default function App() {
   }, [refresh])
 
   if (error && !db) return <div className="loading">{error}</div>
-  if (!db) return <div className="loading">불러오는 중…</div>
+  if (!db || !settings) return <div className="loading">불러오는 중…</div>
 
+  // 1) 입장 전: 소개 랜딩 → 입장 코드
+  if (!entered) {
+    if (!gateOpen) return <Landing onStart={() => setGateOpen(true)} />
+    return (
+      <Gate
+        title="입장 코드"
+        desc="친구가 알려준 입장 코드를 입력해 주세요."
+        expect={settings.access_code}
+        okLabel="들어가기"
+        onOk={() => {
+          localStorage.setItem(ENTERED_KEY, '1')
+          setEntered(true)
+        }}
+        onBack={() => setGateOpen(false)}
+      />
+    )
+  }
+
+  // 2) 입장 후: 이름 로그인
   const me = db.members.find((m) => m.id === meId)
   if (!me) {
     return (
@@ -55,6 +92,40 @@ export default function App() {
     )
   }
 
+  // 3) 관리자 PIN 입력 화면
+  if (adminGate) {
+    return (
+      <Gate
+        title="관리자 확인"
+        desc="관리자 PIN을 입력하면 코드 변경·멤버/여행 정리를 할 수 있어요."
+        expect={settings.admin_pin}
+        okLabel="관리자로 들어가기"
+        onOk={() => {
+          setIsAdmin(true)
+          setAdminGate(false)
+          setAdminView(true)
+        }}
+        onBack={() => setAdminGate(false)}
+      />
+    )
+  }
+
+  // 4) 관리자 패널
+  if (adminView) {
+    return (
+      <div className="app">
+        <AdminPanel
+          db={db}
+          me={me}
+          settings={settings}
+          refreshSettings={refreshSettings}
+          refresh={refresh}
+          onClose={() => setAdminView(false)}
+        />
+      </div>
+    )
+  }
+
   const trip = view.tripId ? db.trips.find((t) => t.id === view.tripId) : null
 
   return (
@@ -66,7 +137,7 @@ export default function App() {
           </button>
         ) : (
           <span className="logo">
-            <AirplaneTilt size={19} weight="fill" />
+            <span className="b1 blob" style={{ width: 18, height: 18, background: 'var(--accent)' }} />
             언제갈까
           </span>
         )}
@@ -76,8 +147,17 @@ export default function App() {
           </span>
         )}
         <button
+          className="back"
+          style={{ marginLeft: 'auto' }}
+          aria-label="관리자"
+          title="관리자"
+          onClick={() => (isAdmin ? setAdminView(true) : setAdminGate(true))}
+        >
+          <GearSix size={20} />
+        </button>
+        <button
           className="me-chip"
-          style={{ '--c': me.color }}
+          style={{ '--c': me.color, marginLeft: 0 }}
           onClick={async () => {
             if (await confirmDlg('다른 이름으로 로그인할까요?', { okLabel: '이름 바꾸기' })) {
               localStorage.removeItem(ME_KEY)

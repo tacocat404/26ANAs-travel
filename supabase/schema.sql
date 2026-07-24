@@ -75,10 +75,17 @@ create table photos (
 alter table members enable row level security;
 alter table unavailable enable row level security;
 alter table trips enable row level security;
+-- 입장 코드 / 관리자 PIN 등 앱 설정 (key-value)
+create table if not exists settings (
+  key text primary key,
+  value text
+);
+
 alter table regions enable row level security;
 alter table places enable row level security;
 alter table notices enable row level security;
 alter table photos enable row level security;
+alter table settings enable row level security;
 
 create policy "open" on members for all using (true) with check (true);
 create policy "open" on unavailable for all using (true) with check (true);
@@ -87,3 +94,4 @@ create policy "open" on regions for all using (true) with check (true);
 create policy "open" on places for all using (true) with check (true);
 create policy "open" on notices for all using (true) with check (true);
 create policy "open" on photos for all using (true) with check (true);
+create policy "open" on settings for all using (true) with check (true);

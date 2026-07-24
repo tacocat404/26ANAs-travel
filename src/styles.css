@@ -1,40 +1,50 @@
 /* ────────────────────────────────────────────────
-   언제갈까? 디자인 시스템 v2 "잉크 & 멤버 컬러"
-   원칙: 베이스는 모노크롬(zinc). 화면에서 색을 가진 것은
-   오직 "사람(멤버 색)"뿐 — 데이터가 주인공.
-   반경 체계: 카드 16 / 컨트롤 12 / 칩·핀 pill (문서화된 3단계)
+   언제갈까? 디자인 시스템 v3 "여행 기록(해마풍 파스텔 일기)"
+   원칙: 웜 화이트 배경 + 흰 카드 + 아주 옅은 그림자. 큰 둥근 모서리.
+   포인트색은 부드러운 복숭아(--accent) 하나. 진짜 색은 "사람(멤버 색)"이 담당.
+   손글씨(--hand)는 날짜·라벨 같은 포인트에만.
+   반경: 카드 22 / 컨트롤 14 / 버튼·칩 pill (문서화된 3단계)
    ──────────────────────────────────────────────── */
 :root {
-  --bg: #f4f4f5;
+  --bg: #f5f4ef;
   --surface: #ffffff;
-  --ink: #18181b;
-  --sub: #71717a;
-  --line: #e4e4e7;
-  --btn-ink: #18181b;
-  --btn-ink-text: #fafafa;
+  --surface-2: #faf9f5; /* 카드 안 살짝 눌린 면 */
+  --ink: #3a3833;
+  --sub: #9b988e;
+  --line: #eceae2;
+  --btn-ink: #34322d;
+  --btn-ink-text: #f6f4ee;
   --mix: #ffffff; /* 멤버 색을 섞을 베이스(라이트=흰색, 다크=표면색) */
-  --danger: #c2453a;
-  --sun: #d9463c;
-  --sat: #3b69c6;
-  --r-card: 16px;
-  --r-ctl: 12px;
-  --shadow: 0 1px 2px rgba(24, 24, 27, 0.05), 0 4px 14px rgba(24, 24, 27, 0.06);
+  --accent: #ef9e78; /* 부드러운 복숭아 (단일 포인트) */
+  --accent-soft: #f9d8c4;
+  --accent-ink: #5a3018;
+  --danger: #d1795f;
+  --sun: #dd8272;
+  --sat: #7c9ec3;
+  --r-card: 22px;
+  --r-ctl: 14px;
+  --shadow: 0 6px 22px rgba(74, 62, 46, 0.07), 0 1px 2px rgba(74, 62, 46, 0.04);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --hand: 'Gaegu', 'Nanum Pen Script', 'Pretendard Variable', Pretendard, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #101012;
-    --surface: #1b1b1e;
-    --ink: #f4f4f5;
-    --sub: #9d9da6;
-    --line: #2b2b30;
-    --btn-ink: #f4f4f5;
-    --btn-ink-text: #141416;
-    --mix: #1b1b1e;
-    --danger: #ff8a7d;
-    --sun: #ff7d70;
-    --sat: #7ba3f2;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
+    --bg: #201e1b;
+    --surface: #2a2825;
+    --surface-2: #252320;
+    --ink: #efe9dd;
+    --sub: #a39f93;
+    --line: #38352f;
+    --btn-ink: #efe9dd;
+    --btn-ink-text: #201e1b;
+    --mix: #2a2825;
+    --accent: #f0a37e;
+    --accent-soft: #5a4536;
+    --accent-ink: #f6ece3;
+    --danger: #e69a86;
+    --sun: #e79684;
+    --sat: #8fb0d6;
+    --shadow: 0 6px 22px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -75,7 +85,7 @@ textarea {
 }
 input:focus,
 textarea:focus {
-  border-color: var(--ink);
+  border-color: var(--accent);
 }
 input::placeholder,
 textarea::placeholder {
@@ -155,8 +165,8 @@ textarea {
   gap: 7px;
   background: var(--btn-ink);
   color: var(--btn-ink-text);
-  border-radius: var(--r-ctl);
-  padding: 12px 18px;
+  border-radius: 999px;
+  padding: 12px 20px;
   font-weight: 700;
   text-align: center;
   transition: transform 0.12s var(--ease), opacity 0.15s;
@@ -169,13 +179,18 @@ textarea {
   cursor: default;
 }
 .primary.small {
-  padding: 8px 14px;
+  padding: 8px 15px;
   font-size: 14px;
+}
+/* 강조 CTA(시작하기 등): 복숭아 포인트색 */
+.primary.accent {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .ghost {
   border: 1.5px solid var(--line);
-  border-radius: var(--r-ctl);
-  padding: 12px 18px;
+  border-radius: 999px;
+  padding: 12px 20px;
   background: var(--surface);
   transition: transform 0.12s var(--ease);
 }
@@ -946,8 +961,8 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 .cal-day.today .d {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 /* 선택 표시는 링(그림자)으로: "내 안 되는 날" 테두리(멤버 색)와 겹쳐도 둘 다 보인다 */
 .cal-day.sel {
@@ -1683,5 +1698,414 @@ button.map-chip:active {
   }
   .geo-label {
     font-size: 15px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   v3 해마풍: 손글씨·블롭·랜딩·입장 게이트·관리자
+   ═══════════════════════════════════════════════════ */
+.hand {
+  font-family: var(--hand);
+}
+
+/* 파스텔 감정 블롭 (해마 캐릭터 오마주) */
+.blob {
+  border-radius: 47% 53% 52% 48% / 55% 49% 51% 45%;
+  display: inline-block;
+  position: relative;
+}
+.blob.face::before,
+.blob.face::after {
+  content: '';
+  position: absolute;
+  top: 38%;
+  width: 11%;
+  height: 14%;
+  background: rgba(40, 36, 30, 0.5);
+  border-radius: 50%;
+}
+.blob.face::before {
+  left: 30%;
+}
+.blob.face::after {
+  right: 30%;
+}
+
+/* ── 소개 랜딩 ── */
+.lp {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+}
+.lp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.lp-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lp-brand .b1 {
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+}
+.lp-brand .sub {
+  font-size: 15px;
+  color: var(--sub);
+  font-weight: 400;
+  transform: rotate(-3deg);
+}
+.lp-section {
+  padding: clamp(40px, 7vw, 80px) 0;
+}
+.lp-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+}
+.lp-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.lp-kicker .b1 {
+  width: 26px;
+  height: 26px;
+  background: var(--accent-soft);
+}
+.lp h1 {
+  margin: 0;
+  font-size: clamp(34px, 5.2vw, 56px);
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+.lp h1 .hl {
+  position: relative;
+  white-space: nowrap;
+}
+.lp h1 .hl::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: 0.06em;
+  height: 0.42em;
+  z-index: -1;
+  background: var(--accent-soft);
+  transform: rotate(-1deg);
+  border-radius: 6px;
+}
+.lp-lead {
+  margin: 20px 0 0;
+  font-size: clamp(15.5px, 1.5vw, 18px);
+  color: var(--sub);
+  max-width: 34ch;
+}
+.lp-cta {
+  margin-top: 30px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lp-cta .primary {
+  padding: 15px 30px;
+  font-size: 16px;
+  box-shadow: var(--shadow);
+}
+.lp-link {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+}
+.lp-sec-head h2 {
+  margin: 6px 0 0;
+  font-size: clamp(25px, 3.4vw, 36px);
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+.lp-sec-head .kick {
+  font-size: 21px;
+  color: var(--accent);
+}
+.lp-sec-head p {
+  margin: 12px 0 0;
+  color: var(--sub);
+  max-width: 48ch;
+}
+.lp-peek {
+  margin-top: clamp(24px, 4vw, 40px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.lp-panel {
+  padding: 22px;
+}
+.lp-panel h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.lp-panel .desc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--sub);
+}
+.lp-panel .stage {
+  margin-top: 14px;
+  background: var(--surface-2);
+  border-radius: var(--r-ctl);
+  padding: 16px;
+}
+.lp-entry {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.lp-entry + .lp-entry {
+  margin-top: 14px;
+}
+.lp-entry .av {
+  width: 34px;
+  height: 34px;
+  margin-top: 2px;
+}
+.lp-entry .date {
+  font-size: 16px;
+  color: var(--sub);
+}
+.lp-entry .body {
+  font-size: 14px;
+}
+.lp-entry .photo {
+  margin-top: 8px;
+  height: 96px;
+  border-radius: 12px;
+}
+.lp-metarow {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+}
+.lp-metarow + .lp-metarow {
+  margin-top: 10px;
+}
+.lp-metarow .k {
+  color: var(--sub);
+  font-size: 13px;
+}
+.lp-steps {
+  margin-top: clamp(24px, 4vw, 40px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.lp-step {
+  padding: 20px;
+}
+.lp-step .no {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.lp-step h3 {
+  margin: 8px 0 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.lp-step p {
+  margin: 8px 0 0;
+  color: var(--sub);
+  font-size: 14.5px;
+}
+.lp-lock {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(24px, 4vw, 44px);
+  align-items: center;
+}
+.lp-keycard {
+  padding: 32px;
+  text-align: center;
+}
+.lp-keyblob {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  background: var(--accent-soft);
+}
+.lp-keyblob .kh {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border: 2.5px solid var(--accent);
+  border-radius: 50%;
+}
+.code-digits {
+  display: flex;
+  gap: 9px;
+  justify-content: center;
+  margin: 0 0 12px;
+}
+.code-digits span {
+  width: 42px;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+}
+.lp-foot {
+  padding: 30px 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  color: var(--sub);
+  font-size: 14px;
+}
+.lp-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.lp-up.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── 입장 게이트 / 관리자 로그인 ── */
+.gate {
+  max-width: 400px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 8vh 26px 40px;
+}
+.gate-blob {
+  width: 64px;
+  height: 64px;
+  background: var(--accent-soft);
+  margin-bottom: 4px;
+}
+.gate-blob .kh {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+}
+.gate h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.gate p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 15px;
+}
+.gate .pin-input {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 16px 14px;
+}
+.gate-back {
+  align-self: flex-start;
+  color: var(--sub);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── 관리자 패널 ── */
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.admin-row .nm {
+  font-weight: 700;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-row small {
+  color: var(--sub);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.admin-sec-title {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sub);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 800px) {
+  .lp-hero,
+  .lp-peek,
+  .lp-steps,
+  .lp-lock {
+    grid-template-columns: 1fr;
+  }
+  .lp-brand .sub {
+    display: none;
   }
 }

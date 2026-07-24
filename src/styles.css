@@ -937,7 +937,7 @@ textarea {
 }
 .cal-day {
   aspect-ratio: 1;
-  border-radius: 10px;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -974,14 +974,15 @@ textarea {
 }
 .dots {
   display: flex;
-  gap: 2px;
-  height: 5px;
+  gap: 2.5px;
+  height: 7px;
   align-items: center;
 }
+/* 안 되는 사람 = 작은 파스텔 블롭 (해마 캐릭터 오마주) */
 .dots i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 48% 52% 50% 50% / 55% 50% 50% 45%;
   display: block;
   animation: rise 0.2s var(--ease) both;
 }

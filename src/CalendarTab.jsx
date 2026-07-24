@@ -49,8 +49,11 @@ export default function CalendarTab({ db, me, trip, refresh }) {
     setSelected(null)
   }
 
-  const tapDay = (date) => {
-    setSelected(date)
+  // 날짜 탭 = "그날 열기"(선택)만. 안 되는 날 표시는 아래 패널의 버튼으로.
+  // (예전엔 탭이 곧 토글이라, 가는 날을 고르려 탭하면 그 날이 내 '안 되는 날'로도 찍히는 버그가 있었다.)
+  const selectDay = (date) => setSelected(date)
+
+  const toggleMine = (date) => {
     const mineNow = busyOn(date).includes(me.id)
     setPending((p) => ({ ...p, [date]: !mineNow }))
     store
@@ -113,8 +116,8 @@ export default function CalendarTab({ db, me, trip, refresh }) {
         </div>
       ) : (
         <p className="hint">
-          날짜를 탭해 <b>내가 안 되는 날</b>을 표시하고, 모두 되는 날을 골라 아래에서 <b>가는 날로 확정</b>하면
-          2단계로 넘어가요.
+          날짜를 탭하면 그날이 열려요. 거기서 <b>안 되는 날</b> 표시나 <b>가는 날 확정</b>을 골라요. 모두 되는
+          날을 확정하면 2단계로 넘어가요.
         </p>
       )}
 
@@ -154,11 +157,11 @@ export default function CalendarTab({ db, me, trip, refresh }) {
                   (dow === 0 ? ' sun' : dow === 6 ? ' sat' : '')
                 }
                 style={mine ? { '--c': me.color } : undefined}
-                aria-pressed={mine}
+                aria-pressed={selected === date}
                 aria-label={`${month}월 ${d}일 ${WEEK[dow]}요일${inTrip(date) ? ', 가는 날' : ''}${
                   mine ? ', 내가 안 되는 날' : ''
                 }${list.length ? `, 안 되는 사람 ${list.length}명` : ''}`}
-                onClick={() => tapDay(date)}
+                onClick={() => selectDay(date)}
               >
                 <span className="d">{d}</span>
                 <span className="dots">
@@ -176,9 +179,10 @@ export default function CalendarTab({ db, me, trip, refresh }) {
       {selected && (
         <div className="card day-panel">
           <b className="num">{fmtDate(selected)}</b>
-          {selMine && <p className="day-mine">내가 안 되는 날로 표시했어요. 날짜를 다시 탭하면 취소돼요.</p>}
           {selBusy.length === 0 ? (
-            <p>이 날은 모두 갈 수 있어요!</p>
+            <p className="hand" style={{ fontSize: 19, color: 'var(--accent)', margin: '6px 0 0' }}>
+              이 날은 모두 갈 수 있어요!
+            </p>
           ) : (
             <p className="pill-row">
               안 되는 사람:{' '}
@@ -194,8 +198,16 @@ export default function CalendarTab({ db, me, trip, refresh }) {
             </p>
           )}
           <div className="reco-row">
+            {/* 내 안 되는 날 표시/취소 — 이제 탭이 아니라 이 버튼으로 (선택과 분리) */}
+            <button
+              className={selMine ? 'ghost small' : 'primary small'}
+              style={selMine ? { '--c': me.color, borderColor: me.color } : undefined}
+              onClick={() => toggleMine(selected)}
+            >
+              {selMine ? '안 되는 날 취소' : '나는 이 날 안 돼요'}
+            </button>
             {!confirmed && (
-              <button className="primary small" onClick={() => setDates(selected, selected, true)}>
+              <button className="primary small accent" onClick={() => setDates(selected, selected, true)}>
                 <CalendarCheck size={14} weight="bold" />이 날로 확정
               </button>
             )}

@@ -1,9 +1,12 @@
 import { useEffect, useRef } from 'react'
+import { CaretLeft } from '@phosphor-icons/react'
 
 // 소개 랜딩: 스크롤 내리며 이 앱이 뭔지 설명 → "시작하기"로 입장 코드 화면.
 // 프로토타입에서 확정한 해마풍 부드러운 언어. 색은 CSS 토큰(--accent)에서.
-export default function Landing({ onStart }) {
+// intro=true 면 이미 앱에 들어온 상태에서 '소개 다시보기'로 열린 것 → CTA는 앱으로 복귀.
+export default function Landing({ onStart, intro = false }) {
   const ref = useRef(null)
+  const cta = intro ? '앱으로 돌아가기' : '시작하기'
 
   useEffect(() => {
     const els = ref.current?.querySelectorAll('.lp-up')
@@ -28,8 +31,9 @@ export default function Landing({ onStart }) {
           언제갈까?
           <span className="sub hand">우리들의 여행 기록</span>
         </span>
-        <button className="primary small" onClick={onStart}>
-          시작하기
+        <button className={'primary small' + (intro ? '' : ' accent')} onClick={onStart}>
+          {intro && <CaretLeft size={15} weight="bold" />}
+          {cta}
         </button>
       </nav>
 
@@ -51,7 +55,7 @@ export default function Landing({ onStart }) {
           </p>
           <div className="lp-cta">
             <button className="primary accent" onClick={onStart}>
-              시작하기
+              {cta}
             </button>
             <a className="lp-link" href="#peek">
               둘러보기
@@ -191,7 +195,7 @@ export default function Landing({ onStart }) {
             </p>
             <div className="lp-cta">
               <button className="primary accent" onClick={onStart}>
-                시작하기
+                {cta}
               </button>
             </div>
           </div>

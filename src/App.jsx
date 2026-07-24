@@ -24,6 +24,7 @@ export default function App() {
   const [adminGate, setAdminGate] = useState(false) // 관리자 PIN 입력 중
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminView, setAdminView] = useState(false)
+  const [showIntro, setShowIntro] = useState(false) // 앱 안에서 소개 화면 다시보기
   const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {
@@ -92,6 +93,11 @@ export default function App() {
     )
   }
 
+  // 2.5) 앱 안에서 '소개 다시보기' (로고 클릭)
+  if (showIntro) {
+    return <Landing intro onStart={() => setShowIntro(false)} />
+  }
+
   // 3) 관리자 PIN 입력 화면
   if (adminGate) {
     return (
@@ -136,10 +142,10 @@ export default function App() {
             <CaretLeft size={22} weight="bold" />
           </button>
         ) : (
-          <span className="logo">
+          <button className="logo" onClick={() => setShowIntro(true)} title="소개 화면 보기">
             <span className="b1 blob" style={{ width: 18, height: 18, background: 'var(--accent)' }} />
             언제갈까
-          </span>
+          </button>
         )}
         {trip && (
           <span className="topbar-title">

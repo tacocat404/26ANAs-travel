@@ -517,16 +517,48 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-/* ── 홈: 홈(대시보드)/진행중/끝난여행/캘린더/갤러리 ── */
+/* ── 홈 네비게이션 바 (본문과 분리된 바 형태, ANA 참고) ── */
 .tabs.home-tabs {
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  grid-template-columns: none;
+  gap: 3px;
+  background: var(--surface);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 7px 14px;
+  margin: -12px -14px 8px;
 }
 .home-tabs .tab {
-  font-size: 11px;
-  padding: 8px 1px 7px;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  padding: 8px 2px;
+  border-radius: 12px;
+  color: var(--sub);
 }
 .home-tabs .tab span {
-  font-size: 17px;
+  font-size: 18px;
+}
+.home-tabs .tab.on {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: none;
+}
+@media (min-width: 900px) {
+  .tabs.home-tabs {
+    margin: -20px -32px 12px;
+    padding: 10px 32px;
+    gap: 6px;
+  }
+  .home-tabs .tab {
+    flex-direction: row;
+    gap: 8px;
+    font-size: 14px;
+    max-width: 180px;
+  }
 }
 .tab {
   white-space: nowrap;

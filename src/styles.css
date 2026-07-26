@@ -517,9 +517,16 @@ textarea {
   box-shadow: var(--shadow);
 }
 
-/* ── 홈: 진행중/끝난여행/캘린더/갤러리 ── */
+/* ── 홈: 홈(대시보드)/진행중/끝난여행/캘린더/갤러리 ── */
 .tabs.home-tabs {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
+}
+.home-tabs .tab {
+  font-size: 11px;
+  padding: 8px 1px 7px;
+}
+.home-tabs .tab span {
+  font-size: 17px;
 }
 .tab {
   white-space: nowrap;
@@ -2108,5 +2115,334 @@ button.map-chip:active {
   }
   .lp-brand .sub {
     display: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   홈 대시보드 (한 화면에 분류된 요약 포털)
+   ═══════════════════════════════════════════════════ */
+.dash {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 대표 여행 히어로 */
+.dash-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.14s var(--ease), border-color 0.15s;
+}
+.dash-hero:active {
+  transform: scale(0.99);
+}
+.dash-hero-photo {
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+  background-color: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+  display: grid;
+  place-items: center;
+}
+.dash-hero-emoji {
+  font-size: 54px;
+}
+.dash-hero-body {
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  justify-content: center;
+  align-items: flex-start;
+}
+.dash-hero-body .trip-status {
+  margin: 0;
+}
+.dash-hero-title {
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.dash-hero-body small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sub);
+  font-size: 13px;
+}
+.dash-hero-cta {
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 17px;
+}
+.dash-empty-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 18px;
+  text-align: center;
+}
+.dash-empty-hero svg {
+  opacity: 0.6;
+}
+.dash-empty-hero b {
+  font-size: 17px;
+}
+.dash-empty-hero span {
+  color: var(--sub);
+  font-size: 14px;
+}
+.dash-empty-hero .primary {
+  margin-top: 6px;
+}
+
+/* 요약 통계 */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 4px;
+  gap: 2px;
+}
+.dash-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 4px;
+  border-radius: 16px;
+  background: none;
+  transition: background 0.15s;
+}
+.dash-stat b {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+.dash-stat small {
+  font-size: 12px;
+  color: var(--sub);
+  font-weight: 600;
+}
+
+/* 섹션 패널 그리드 */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.dash-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dash-panel-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.dash-panel-head b {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.dash-kicker {
+  font-size: 16px;
+  color: var(--accent);
+  order: -1;
+  width: 100%;
+  line-height: 1;
+  margin-bottom: -6px;
+}
+.dash-more {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+  flex-shrink: 0;
+}
+.dash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dash-trip,
+.dash-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 14px;
+  transition: background 0.15s;
+}
+.dash-trip-emoji {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.dash-trip-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.dash-trip-body b {
+  font-size: 14.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-trip-body small {
+  color: var(--sub);
+  font-size: 12px;
+}
+.dash-trip .trip-status {
+  margin: 0;
+  flex-shrink: 0;
+}
+.dash-add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--line);
+  color: var(--sub);
+  font-weight: 700;
+  font-size: 14px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.dash-notice .av {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.dash-notice-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.dash-notice-text {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-notice-body small {
+  color: var(--sub);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-empty-note {
+  margin: 0;
+  color: var(--sub);
+  font-size: 13.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 갤러리 썸네일 줄 */
+.dash-photos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.dash-photo {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  transition: transform 0.12s var(--ease);
+}
+.dash-photo:active {
+  transform: scale(0.95);
+}
+.dash-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 추억 미니 카드 */
+.dash-memories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dash-memory {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+.dash-memory-cover {
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center;
+  background-color: color-mix(in srgb, var(--ink) 7%, var(--surface-2));
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  margin-bottom: 3px;
+  transition: transform 0.14s var(--ease);
+}
+.dash-memory b {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-memory small {
+  color: var(--sub);
+  font-size: 11.5px;
+}
+
+@media (hover: hover) {
+  .dash-hero:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--ink) 20%, var(--line));
+  }
+  .dash-stat:hover,
+  .dash-trip:hover,
+  .dash-notice:hover {
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+  .dash-more:hover {
+    color: var(--accent);
+  }
+  .dash-add-row:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .dash-photo:hover img,
+  .dash-memory:hover .dash-memory-cover {
+    transform: scale(1.05);
+  }
+}
+
+/* 넓은 화면: 섹션 2열 */
+@media (min-width: 720px) {
+  .dash-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
 }

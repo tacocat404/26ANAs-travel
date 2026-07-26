@@ -18,7 +18,7 @@ export default function App() {
   const [error, setError] = useState('')
   const [meId, setMeId] = useState(localStorage.getItem(ME_KEY) || '')
   const [view, setView] = useState({ page: 'home', tripId: null })
-  const [homeTab, setHomeTab] = useState('ongoing')
+  const [homeTab, setHomeTab] = useState('home')
   const [entered, setEntered] = useState(localStorage.getItem(ENTERED_KEY) === '1')
   const [gateOpen, setGateOpen] = useState(false) // 랜딩 → 입장 코드
   const [adminGate, setAdminGate] = useState(false) // 관리자 PIN 입력 중

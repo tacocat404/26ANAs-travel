@@ -7,7 +7,7 @@ import {
   Confetti,
   AirplaneTilt,
 } from '@phosphor-icons/react'
-import { tripStage, fmtRange, todayStr, memberById } from './utils.js'
+import { tripStage, fmtRange, todayStr, memberById, allFreeDays, fmtDate } from './utils.js'
 
 // 한 화면에 모든 걸 분류해 보여주는 홈 대시보드(포털).
 // 대표 여행 + 요약 통계 + 섹션 패널(진행 중 / 최근 공지 / 갤러리 / 추억).
@@ -72,6 +72,7 @@ export default function HomeDashboard({ db, me, setTab, onOpen }) {
 
   const cover = featured ? coverOf(featured.id) : null
   const fst = featured ? statusOf(featured) : null
+  const freeDays = allFreeDays(db, 4)
 
   return (
     <div className="dash">
@@ -108,6 +109,20 @@ export default function HomeDashboard({ db, me, setTab, onOpen }) {
           <button className="primary accent" onClick={() => setTab('ongoing')}>
             <Plus size={15} weight="bold" />새 여행 만들기
           </button>
+        </div>
+      )}
+
+      {/* ── 모두 되는 날 (이 앱의 핵심 가치) ── */}
+      {freeDays.length > 0 && (
+        <div className="card dash-free">
+          <span className="dash-free-head hand">다 같이 되는 날</span>
+          <div className="dash-free-days">
+            {freeDays.map((d) => (
+              <button key={d} className="dash-free-day num" onClick={() => setTab('cal')}>
+                {fmtDate(d).slice(5)}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

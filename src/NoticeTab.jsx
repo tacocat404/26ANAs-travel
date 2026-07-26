@@ -45,11 +45,11 @@ export default function NoticeTab({ db, me, trip, refresh }) {
         return (
           <div key={n.id} className={'card notice' + (n.pinned ? ' pinned' : '')}>
             <div className="notice-head">
-              <span className="legend-item">
-                <i style={{ background: author?.color }} />
-                {author?.name || '알 수 없음'}
-              </span>
-              <small className="num">{(n.created_at || '').slice(0, 10).replaceAll('-', '.')}</small>
+              <span className="notice-av blob" style={{ background: author?.color || 'var(--sub)' }} />
+              <span className="notice-who">{author?.name || '알 수 없음'}</span>
+              <small className="hand notice-date">
+                {(n.created_at || '').slice(5, 10).replace('-', '월 ')}일
+              </small>
               <span className="notice-btns">
                 <button
                   className={'ghost-icon' + (n.pinned ? ' on' : '')}

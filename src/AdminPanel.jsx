@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CaretLeft, Trash, Check } from '@phosphor-icons/react'
+import { CaretLeft, Trash, Check, PencilSimple } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
 import { memberName } from './utils.js'
@@ -73,10 +73,24 @@ export default function AdminPanel({ db, me, settings, refreshSettings, refresh,
           {db.members.map((m) => (
             <div key={m.id} className="admin-row" style={{ padding: '8px 2px' }}>
               <span className="nm">
-                <i className="legend-item" style={{ display: 'inline-block', width: 12, height: 12, borderRadius: '50%', background: m.color }} />
+                <i className="blob" style={{ display: 'inline-block', width: 16, height: 16, background: m.color }} />
                 {m.name}
                 {m.id === me.id ? ' (나)' : ''}
               </span>
+              <button
+                className="x"
+                aria-label="이름 바꾸기"
+                title="이름 바꾸기"
+                onClick={async () => {
+                  const next = prompt(`'${m.name}'의 새 이름을 적어주세요.`, m.name)
+                  if (next && next.trim() && next.trim() !== m.name) {
+                    await store.renameMember(m.id, next.trim().slice(0, 10))
+                    refresh()
+                  }
+                }}
+              >
+                <PencilSimple size={16} />
+              </button>
               {m.id !== me.id && (
                 <button
                   className="x"

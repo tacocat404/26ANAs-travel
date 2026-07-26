@@ -31,6 +31,23 @@ export function fmtRange(start, end) {
   return `${fmtDate(start)} ~ ${endLabel}`
 }
 
+// 앞으로 60일 안에서 "모두 되는 날"을 찾는다. (아무도 안 되는 날로 표시 안 한 날)
+// 멤버가 2명 이상일 때만 의미가 있다. 최대 limit개까지.
+export function allFreeDays(db, limit = 4) {
+  if (!db?.members?.length || db.members.length < 2) return []
+  const busy = new Set(db.unavailable.map((u) => u.date))
+  const out = []
+  const base = new Date()
+  base.setHours(0, 0, 0, 0)
+  for (let i = 1; i <= 60 && out.length < limit; i++) {
+    const d = new Date(base)
+    d.setDate(base.getDate() + i)
+    const s = ymd(d)
+    if (!busy.has(s)) out.push(s)
+  }
+  return out
+}
+
 // 여행이 지금 어느 단계인지 자동 판정: 1 일정조율 / 2 세부일정 / 3 추억정리
 export function tripStage(trip) {
   if (!trip.confirmed_start) return 1

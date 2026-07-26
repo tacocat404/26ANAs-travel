@@ -30,10 +30,11 @@ export const PROVINCE_LABELS = [
 
 const hashNum = (s) => [...s].reduce((a, c) => a + c.charCodeAt(0), 0)
 
+// 앱 전체 파스텔 톤에 맞춘 부드러운 채도/밝기.
 export const fillOf = (code, chosen) => {
   const hue = HUES[code.slice(0, 2)] ?? 200
-  const light = 68 + (hashNum(code) % 5) * 3 // 68~80% 사이에서 구역마다 살짝 다르게
-  return `hsl(${hue} ${chosen ? 62 : 46}% ${chosen ? light - 10 : light}%)`
+  const light = 79 + (hashNum(code) % 5) * 2 // 79~87% 사이에서 구역마다 살짝 다르게
+  return `hsl(${hue} ${chosen ? 52 : 34}% ${chosen ? light - 7 : light}%)`
 }
 
 // 구역 폴리곤 기본 스타일. chosenSet = 후보지로 담긴 구역 코드 모음.

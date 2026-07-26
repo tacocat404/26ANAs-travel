@@ -150,7 +150,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     ]
     const mask = L.polygon([world, ...outerRings(feat)], {
       stroke: false,
-      fillColor: '#12294f',
+      fillColor: '#5b6b78',
       fillOpacity: 0.5,
       interactive: false,
     })
@@ -220,7 +220,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     if (!focus) return
     const coords = places.map((p) => [p.lat, p.lng])
     if (coords.length > 1) {
-      L.polyline(coords, { color: '#12294f', weight: 5, opacity: 0.5, interactive: false }).addTo(layer)
+      L.polyline(coords, { color: '#7d6b60', weight: 5, opacity: 0.45, interactive: false }).addTo(layer)
       L.polyline(coords, { color: '#ffffff', weight: 2.5, dashArray: '1 9', interactive: false }).addTo(layer)
     }
     places.forEach((p, i) => {

@@ -9,10 +9,31 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, DEFAULT_ACCESS_CODE, DEFAULT_ADMIN_PIN
 const SETTING_DEFAULTS = { access_code: DEFAULT_ACCESS_CODE, admin_pin: DEFAULT_ADMIN_PIN }
 const LS_SETTINGS = 'trip-cal-settings'
 
+// 새 멤버에게 주는 색 — 해마풍 파스텔 팔레트.
 export const MEMBER_COLORS = [
-  '#FF6B6B', '#4D96FF', '#6BCB77', '#FFB830', '#9B5DE5',
-  '#F15BB5', '#00BBF9', '#FF9F1C', '#00C49A', '#845EC2',
+  '#F4A9B8', '#A9C8EE', '#A9DCC8', '#F6D98A', '#CDB8EE',
+  '#F6B79A', '#9FD8E0', '#E9B5D2', '#BFD9A0', '#C9BBA6',
 ]
+
+// 예전에 저장된 원색(#FF6B6B 등)도 화면에선 파스텔로 보이게 한다.
+// DB 원본은 건드리지 않고, 그릴 때만 채도를 낮추고 밝기를 올린다.
+export function pastelize(hex) {
+  if (typeof hex !== 'string') return hex
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return hex
+  const int = parseInt(m[1], 16)
+  let r = (int >> 16) & 255
+  let g = (int >> 8) & 255
+  let b = int & 255
+  // 흰색 쪽으로 42% 섞어 부드럽게 (이미 연한 색은 거의 그대로)
+  const mix = 0.42
+  r = Math.round(r + (255 - r) * mix)
+  g = Math.round(g + (255 - g) * mix)
+  b = Math.round(b + (255 - b) * mix)
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
+}
+
+const softMembers = (members) => (members || []).map((m) => ({ ...m, color: pastelize(m.color) }))
 
 const LS_KEY = 'trip-cal-v1'
 const EMPTY = { members: [], unavailable: [], trips: [], regions: [], places: [], notices: [], photos: [] }
@@ -34,7 +55,8 @@ function lsWrite(db) {
 const localStore = {
   demo: true,
   async getAll() {
-    return lsRead()
+    const db = lsRead()
+    return { ...db, members: softMembers(db.members) }
   },
   async addMember(name) {
     const db = lsRead()
@@ -137,6 +159,12 @@ const localStore = {
     db.unavailable = db.unavailable.filter((u) => u.member_id !== id)
     lsWrite(db)
   },
+  async renameMember(id, name) {
+    const db = lsRead()
+    const m = db.members.find((x) => x.id === id)
+    if (m) m.name = name
+    lsWrite(db)
+  },
 }
 
 const sb = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
@@ -154,6 +182,7 @@ const remoteStore = {
     names.forEach((n, i) => {
       out[n] = q(res[i])
     })
+    out.members = softMembers(out.members)
     return out
   },
   async addMember(name) {
@@ -220,6 +249,9 @@ const remoteStore = {
   },
   async removeMember(id) {
     q(await sb.from('members').delete().eq('id', id))
+  },
+  async renameMember(id, name) {
+    q(await sb.from('members').update({ name }).eq('id', id))
   },
 }
 

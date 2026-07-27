@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { ArrowLeft, MagnifyingGlass, MapPin, Plus, X } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowUp, ArrowDown, MagnifyingGlass, MapPin, Plus, X } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
 import { memberById, memberName } from './utils.js'
@@ -354,6 +354,23 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     })
   }
 
+  // 핀 순서 바꾸기: 동선은 "찍은 시각(created_at)" 순서라, 이웃한 두 핀의 시각을 맞바꾼다.
+  // (created_at은 화면에 쓰이지 않고 순서 기준으로만 쓰여서 안전하다.)
+  const [moving, setMoving] = useState(false)
+  const swapOrder = async (i, j) => {
+    if (moving || j < 0 || j >= places.length) return
+    setMoving(true)
+    try {
+      const a = places[i]
+      const b = places[j]
+      await store.updatePlace(a.id, { created_at: b.created_at })
+      await store.updatePlace(b.id, { created_at: a.created_at })
+      refresh()
+    } finally {
+      setMoving(false)
+    }
+  }
+
   const addPlace = async (e) => {
     e.preventDefault()
     if (!name.trim() || !draft || !focus) return
@@ -523,7 +540,27 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
                     {regionNameOf(p) && <em className="place-region">{regionNameOf(p)}</em>}
                   </button>
                   {i > 0 && <small className="leg-km num">약 {fmtDist(detailLegs.legs[i - 1].km)}</small>}
-                  <small>{memberName(db, p.added_by)}</small>
+                  <small className="place-by">{memberName(db, p.added_by)}</small>
+                  {places.length > 1 && (
+                    <span className="order-btns">
+                      <button
+                        className="x"
+                        aria-label="순서 위로"
+                        disabled={i === 0 || moving}
+                        onClick={() => swapOrder(i, i - 1)}
+                      >
+                        <ArrowUp size={14} weight="bold" />
+                      </button>
+                      <button
+                        className="x"
+                        aria-label="순서 아래로"
+                        disabled={i === places.length - 1 || moving}
+                        onClick={() => swapOrder(i, i + 1)}
+                      >
+                        <ArrowDown size={14} weight="bold" />
+                      </button>
+                    </span>
+                  )}
                   <button
                     className="x"
                     aria-label="삭제"

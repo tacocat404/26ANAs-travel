@@ -1,0 +1,463 @@
+/* ── 지도 ── */
+.map-wrap {
+  position: relative;
+}
+.map {
+  height: min(58vh, 520px);
+  min-height: 380px;
+  padding: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+/* 스타일 지도의 바다: 해마 파스텔 톤에 맞춘 부드러운 하늘빛 */
+.map.card {
+  background: linear-gradient(168deg, #cfe3f2 0%, #bcd8ec 55%, #aecde4 100%);
+}
+@media (prefers-color-scheme: dark) {
+  .map.card {
+    background: linear-gradient(168deg, #38505f 0%, #2e4451 55%, #263843 100%);
+  }
+}
+.map-top {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-overlay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-overlay > * {
+  pointer-events: auto;
+}
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 15px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: var(--shadow);
+  transition: transform 0.12s var(--ease);
+}
+button.map-chip:active {
+  transform: scale(0.95);
+}
+.map-chip.title {
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+  border-color: transparent;
+}
+.map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 800;
+  display: grid;
+  place-items: center;
+  color: #eaf1fb;
+  font-weight: 700;
+}
+.map-credit {
+  margin: -6px 0 0;
+  font-size: 11px;
+  color: var(--sub);
+}
+.geo-label {
+  color: #4a5560;
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+.geo-label.small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+.geo-tip {
+  font-weight: 700;
+}
+.place-pin {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--pc, var(--ink));
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  border: 2.5px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+.place-no {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pc, var(--ink)) 22%, var(--mix));
+  border: 2px solid var(--pc, var(--ink));
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.place-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* 핀이 어느 도에 있는지 (도를 넘는 여행에서 구분) */
+.place-region {
+  font-style: normal;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sub);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-left: 7px;
+  vertical-align: 1px;
+}
+
+/* 전국 지도의 전체 동선 요약 */
+.route-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.route-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.detail-total {
+  padding: 0 4px;
+}
+.route-title {
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1;
+}
+.route-total {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sub);
+}
+.route-sub {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--sub);
+}
+/* 전체 지도 위의 지역 노드 (큰 동선: 대전 → 경북) */
+.route-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 2px solid color-mix(in srgb, var(--ink) 30%, var(--line));
+  border-radius: 999px;
+  padding: 5px 12px 5px 5px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--ink);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  transition: transform 0.14s var(--ease);
+}
+.route-node i {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 11.5px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+}
+.route-node em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+}
+/* 구간 거리 라벨 (선 중간). 지도 위 작은 글씨라 대비를 충분히 준다. */
+.leg-label {
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  pointer-events: none;
+}
+.route-cnt {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+}
+.route-arrow small {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 1px;
+}
+.leg-km {
+  color: var(--sub);
+  font-size: 11.5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+/* 확대 지도에서 다른 지역 핀은 흐리게 */
+.place-pin.dim {
+  opacity: 0.4;
+}
+.route-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.route-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.route-arrow {
+  font-style: normal;
+  color: var(--sub);
+  font-size: 15px;
+}
+.route-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1.5px solid color-mix(in srgb, var(--pc, var(--ink)) 55%, var(--line));
+  border-radius: 999px;
+  padding: 6px 13px 6px 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: transform 0.12s var(--ease);
+}
+.route-chip:active {
+  transform: scale(0.95);
+}
+.route-chip i {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--pc, var(--ink));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  flex-shrink: 0;
+}
+/* 지도 위 검색 (네이버지도식 오버레이) - .map-top 컬럼 안에서 칩 줄 아래에 놓인다 */
+.map-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 430px;
+  width: 100%;
+  pointer-events: none;
+}
+.map-search-wrap > * {
+  pointer-events: auto;
+}
+.map-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 6px 4px 14px;
+  box-shadow: var(--shadow);
+}
+.map-search svg {
+  flex-shrink: 0;
+  color: var(--sub);
+}
+.map-search input {
+  border: none;
+  background: none;
+  padding: 9px 0;
+  flex: 1;
+  min-width: 0;
+  border-radius: 0;
+}
+.map-search input:focus {
+  outline: none;
+}
+.search-go {
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: transform 0.12s var(--ease), opacity 0.15s;
+}
+.search-go:active {
+  transform: scale(0.95);
+}
+.search-go:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.search-clear {
+  display: inline-flex;
+  padding: 8px;
+  color: var(--sub);
+  border-radius: 50%;
+}
+.search-results {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 250px;
+  overflow-y: auto;
+  animation: rise 0.18s var(--ease) both;
+}
+.search-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  padding: 9px 11px;
+  border-radius: 10px;
+  width: 100%;
+}
+.search-result:hover,
+.search-result:focus-visible {
+  background: var(--bg);
+}
+.search-result b {
+  font-size: 14px;
+}
+.search-result small {
+  color: var(--sub);
+  font-size: 12px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-empty {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--sub);
+  font-size: 13px;
+}
+.pin-wrap {
+  background: none;
+  border: none;
+}
+.pin-dot {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: var(--pc, var(--ink));
+  border: 2.5px solid var(--surface);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.pin-dot.draft {
+  background: var(--ink);
+  animation: pin-pulse 0.8s infinite alternate var(--ease);
+}
+@keyframes pin-pulse {
+  to {
+    transform: rotate(-45deg) scale(1.2);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .map .leaflet-tile {
+    filter: brightness(0.72) contrast(1.05) saturate(0.8);
+  }
+  .leaflet-bar a {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip,
+  .leaflet-tooltip {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--line);
+  }
+}
+.region-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.region-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+.region-name {
+  font-weight: 700;
+  text-align: left;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.region-item small {
+  color: var(--sub);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.x {
+  color: var(--sub);
+  padding: 5px;
+  display: inline-flex;
+  border-radius: 8px;
+}

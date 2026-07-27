@@ -1,0 +1,143 @@
+/* ── 끝난 여행: 사진 앞세운 추억 카드 ── */
+.memory-cards {
+  display: grid;
+  gap: 12px;
+}
+.memory-card {
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.14s var(--ease), border-color 0.15s;
+}
+.memory-card:active {
+  transform: scale(0.985);
+}
+.memory-cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background-size: cover;
+  background-position: center;
+  background-color: color-mix(in srgb, var(--ink) 7%, var(--bg));
+  display: grid;
+  place-items: center;
+}
+.memory-emoji {
+  font-size: 46px;
+  opacity: 0.9;
+}
+.memory-count {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fafafa;
+  background: rgba(12, 12, 14, 0.55);
+  border-radius: 999px;
+  padding: 4px 10px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.memory-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.memory-body b {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.memory-body small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+/* ── 홈 갤러리: 대표 사진(히어로) + 여행별 메이슨리 ── */
+.gal-lead {
+  margin: 2px 2px 0;
+  font-size: 14px;
+  color: var(--sub);
+}
+.gal-lead b {
+  color: var(--ink);
+}
+.gal-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gal-group.featured {
+  gap: 12px;
+}
+.gal-hero {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r-card);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.gal-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s var(--ease);
+}
+.gal-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  font-size: 15px;
+  padding: 0 2px;
+}
+.gal-group-emoji {
+  font-size: 20px;
+}
+.gal-group-head b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gal-group-head small {
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.gal-group-head .chev {
+  margin-left: auto;
+  color: var(--sub);
+  flex-shrink: 0;
+}
+.masonry {
+  columns: 2;
+  column-gap: 6px;
+}
+.masonry-cell {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  break-inside: avoid;
+  border-radius: var(--r-ctl);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  line-height: 0;
+}
+.masonry-cell img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.3s var(--ease);
+}

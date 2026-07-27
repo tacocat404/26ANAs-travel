@@ -2,16 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { CaretLeft, CaretRight, Confetti, CalendarCheck, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
-import { memberById, fmtRange, fmtDate } from './utils.js'
+import { memberById, fmtRange, fmtDate, pad2 as p2, monthGrid, shiftMonth, todayStr as getToday } from './utils.js'
 import MemberLegend from './MemberLegend.jsx'
 
 // 1단계 일정 조율: 각자 안 되는 날을 표시하고, 모두 되는 날짜를 골라 "가는 날"로 확정한다.
 const WEEK = ['일', '월', '화', '수', '목', '금', '토']
-const p2 = (n) => String(n).padStart(2, '0')
 
 export default function CalendarTab({ db, me, trip, refresh }) {
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${p2(today.getMonth() + 1)}-${p2(today.getDate())}`
+  const todayStr = getToday()
   const thisMonth = todayStr.slice(0, 7)
   const [ym, setYm] = useState(trip.start_month || thisMonth)
   const [selected, setSelected] = useState(null)
@@ -39,13 +37,10 @@ export default function CalendarTab({ db, me, trip, refresh }) {
     return pending[date] ? [...withoutMe, me.id] : withoutMe
   }
 
-  const first = new Date(year, month - 1, 1).getDay()
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const cells = [...Array(first).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+  const { days: daysInMonth, cells } = monthGrid(ym)
 
   const move = (d) => {
-    const t = new Date(year, month - 1 + d, 1)
-    setYm(`${t.getFullYear()}-${p2(t.getMonth() + 1)}`)
+    setYm((cur) => shiftMonth(cur, d))
     setSelected(null)
   }
 

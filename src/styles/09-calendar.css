@@ -1,0 +1,288 @@
+/* ── 캘린더 ── */
+.cal {
+  padding: 10px;
+}
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 10px;
+}
+.cal-head b {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.cal-head button {
+  display: inline-flex;
+  padding: 6px 12px;
+  color: var(--sub);
+  border-radius: 8px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.cal-week {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  padding-bottom: 4px;
+}
+.cal-week.sun,
+.cal-day.sun .d {
+  color: var(--sun);
+}
+.cal-week.sat,
+.cal-day.sat .d {
+  color: var(--sat);
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 2px solid transparent;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s var(--ease);
+}
+.cal-day:active {
+  transform: scale(0.92);
+}
+.cal-day .d {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-variant-numeric: tabular-nums;
+}
+.cal-day.today .d {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* 선택 표시는 링(그림자)으로: "내 안 되는 날" 테두리(멤버 색)와 겹쳐도 둘 다 보인다 */
+.cal-day.sel {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+}
+.cal-day.mine {
+  background: color-mix(in srgb, var(--c) 24%, var(--mix));
+  border-color: var(--c);
+}
+.dots {
+  display: flex;
+  gap: 2.5px;
+  height: 7px;
+  align-items: center;
+}
+/* 안 되는 사람 = 작은 파스텔 블롭 (해마 캐릭터 오마주) */
+.dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 48% 52% 50% 50% / 55% 50% 50% 45%;
+  display: block;
+  animation: rise 0.2s var(--ease) both;
+}
+.dots em {
+  font-style: normal;
+  font-size: 8px;
+  color: var(--sub);
+  line-height: 1;
+}
+.day-panel b {
+  font-size: 15px;
+}
+.day-panel p {
+  margin: 6px 0 0;
+  font-size: 14px;
+}
+.day-mine {
+  color: var(--sub);
+  font-size: 13px;
+}
+
+/* ── 날짜 패널: 이런 날이에요 ── */
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.day-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.day-panel-head .x {
+  margin-left: auto;
+}
+/* 그날 확정된 여행 바로가기 */
+.day-trip-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--surface-2);
+  transition: border-color 0.15s, transform 0.12s var(--ease);
+}
+.day-trip-row:active {
+  transform: scale(0.98);
+}
+.day-trip-row small {
+  color: var(--sub);
+  font-size: 12px;
+}
+.note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-ctl);
+  padding: 9px 11px;
+  font-size: 14px;
+}
+.note-item b {
+  font-size: 14.5px;
+}
+.note-item small {
+  margin-left: auto;
+  color: var(--sub);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.note-item .x {
+  flex-shrink: 0;
+}
+.note-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+.note-repeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+}
+.note-repeat-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink); /* 폼 라벨이라 본문 수준 대비를 준다 */
+  font-weight: 700;
+  cursor: pointer;
+}
+.note-repeat-check input {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+/* 주의를 주는 안내 (예: 이 기기에만 저장) */
+.hint.warn {
+  border-left-color: var(--accent);
+  color: color-mix(in srgb, var(--ink) 72%, var(--sub));
+}
+
+/* ── 모두 갈 수 있는 주말 추천 ── */
+.reco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reco-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+}
+.reco-none {
+  margin: 0;
+  font-size: 13px;
+  color: var(--sub);
+}
+.reco-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.day-chip {
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--bg);
+  transition: transform 0.12s var(--ease), border-color 0.15s;
+}
+.day-chip:active {
+  transform: scale(0.95);
+}
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.pill {
+  background: color-mix(in srgb, var(--c) 20%, var(--mix));
+  border: 1.5px solid var(--c);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.legend-item i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.legend-card {
+  padding: 12px 14px;
+}

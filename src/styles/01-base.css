@@ -1,0 +1,149 @@
+/* ────────────────────────────────────────────────
+   언제갈까? 디자인 시스템 v3 "여행 기록(해마풍 파스텔 일기)"
+   원칙: 웜 화이트 배경 + 흰 카드 + 아주 옅은 그림자. 큰 둥근 모서리.
+   포인트색은 부드러운 복숭아(--accent) 하나. 진짜 색은 "사람(멤버 색)"이 담당.
+   손글씨(--hand)는 날짜·라벨 같은 포인트에만.
+   반경: 카드 22 / 컨트롤 14 / 버튼·칩 pill (문서화된 3단계)
+   ──────────────────────────────────────────────── */
+:root {
+  --bg: #f5f4ef;
+  --surface: #ffffff;
+  --surface-2: #faf9f5; /* 카드 안 살짝 눌린 면 */
+  --ink: #3a3833;
+  --sub: #9b988e;
+  --line: #eceae2;
+  --btn-ink: #34322d;
+  --btn-ink-text: #f6f4ee;
+  --mix: #ffffff; /* 멤버 색을 섞을 베이스(라이트=흰색, 다크=표면색) */
+  --accent: #ef9e78; /* 부드러운 복숭아 (단일 포인트) */
+  --accent-soft: #f9d8c4;
+  --accent-ink: #5a3018;
+  --danger: #d1795f;
+  --sun: #dd8272;
+  --sat: #7c9ec3;
+  --r-card: 22px;
+  --r-ctl: 14px;
+  --shadow: 0 6px 22px rgba(74, 62, 46, 0.07), 0 1px 2px rgba(74, 62, 46, 0.04);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --hand: 'Gaegu', 'Nanum Pen Script', 'Pretendard Variable', Pretendard, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #201e1b;
+    --surface: #2a2825;
+    --surface-2: #252320;
+    --ink: #efe9dd;
+    --sub: #a39f93;
+    --line: #38352f;
+    --btn-ink: #efe9dd;
+    --btn-ink-text: #201e1b;
+    --mix: #2a2825;
+    --accent: #f0a37e;
+    --accent-soft: #5a4536;
+    --accent-ink: #f6ece3;
+    --danger: #e69a86;
+    --sun: #e79684;
+    --sat: #8fb0d6;
+    --shadow: 0 6px 22px rgba(0, 0, 0, 0.32), 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-ctl);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--sub);
+}
+textarea {
+  resize: vertical;
+}
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+#root {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+}
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.loading {
+  padding: 40vh 20px 0;
+  text-align: center;
+  color: var(--sub);
+}
+
+/* ── 모션 ── */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.tab-body,
+.login {
+  animation: rise 0.32s var(--ease) both;
+}
+/* .page는 transform을 쓰지 않는다 — 안에 sticky 네비 바가 있어서
+   transform이 걸리면 바가 헤더에서 밀려 붙는다. 투명도만 부드럽게. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.page {
+  animation: fade-in 0.3s var(--ease) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

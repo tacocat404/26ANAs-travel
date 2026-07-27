@@ -3,34 +3,7 @@ import { Plus, CalendarBlank, MapPin, Megaphone, Images, CaretRight, AirplaneTil
 import { store } from './store.js'
 import MemberLegend from './MemberLegend.jsx'
 import EmojiPicker from './EmojiPicker.jsx'
-import { tripStage, fmtRange, todayStr } from './utils.js'
-
-function fmtPeriod(t) {
-  if (!t.start_month) return '시기 미정'
-  const s = t.start_month.replace('-', '.')
-  if (t.end_month && t.end_month !== t.start_month) return `${s} ~ ${t.end_month.replace('-', '.')}`
-  return s
-}
-
-// 확정 시작일까지 남은 날짜(D-day). 오늘 자정 기준.
-function dday(startStr) {
-  const [y, m, d] = startStr.split('-').map(Number)
-  const start = new Date(y, m - 1, d)
-  const now = new Date()
-  now.setHours(0, 0, 0, 0)
-  return Math.round((start - now) / 86400000)
-}
-
-// 카드에 붙는 상태 배지 (진행 중 여행만).
-function statusOf(t) {
-  const stage = tripStage(t)
-  if (stage === 1) return { label: '날짜 조율 중', kind: 'plan' }
-  const today = todayStr()
-  const end = t.confirmed_end || t.confirmed_start
-  if (today >= t.confirmed_start && today <= end) return { label: '여행 중', kind: 'live' }
-  const n = dday(t.confirmed_start)
-  return { label: `D-${n}`, kind: 'soon', num: true }
-}
+import { tripStage, fmtRange, fmtMonths, tripStatus } from './utils.js'
 
 export default function TripList({ db, me, refresh, onOpen, mode = 'ongoing' }) {
   const [adding, setAdding] = useState(false)
@@ -189,7 +162,7 @@ export default function TripList({ db, me, refresh, onOpen, mode = 'ongoing' }) 
       <div className="trip-cards">
         {trips.map((t) => {
           const cover = coverOf(t.id)
-          const st = statusOf(t)
+          const st = tripStatus(t)
           return (
             <button key={t.id} className="card trip-card" onClick={() => onOpen(t.id)}>
               {cover ? (
@@ -204,7 +177,7 @@ export default function TripList({ db, me, refresh, onOpen, mode = 'ongoing' }) 
                 </span>
                 <small className="trip-meta">
                   <CalendarBlank size={13} />
-                  {st.kind === 'plan' ? fmtPeriod(t) : fmtRange(t.confirmed_start, t.confirmed_end)}
+                  {st.kind === 'plan' ? fmtMonths(t) : fmtRange(t.confirmed_start, t.confirmed_end)}
                 </small>
                 <small className="trip-meta num">
                   <MapPin size={13} />

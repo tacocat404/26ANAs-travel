@@ -166,6 +166,24 @@ const localStore = {
     db.photos = db.photos.filter((p) => p.id !== id)
     lsWrite(db)
   },
+  async setPhotoCaption(id, caption) {
+    const db = lsRead()
+    const p = db.photos.find((x) => x.id === id)
+    if (p) p.caption = caption
+    lsWrite(db)
+  },
+  async updateTrip(id, fields) {
+    const db = lsRead()
+    const t = db.trips.find((x) => x.id === id)
+    if (t) Object.assign(t, fields)
+    lsWrite(db)
+  },
+  async updatePlace(id, fields) {
+    const db = lsRead()
+    const p = db.places.find((x) => x.id === id)
+    if (p) Object.assign(p, fields)
+    lsWrite(db)
+  },
   // 입장 코드 / 관리자 PIN (데모: localStorage)
   async getSettings() {
     try {
@@ -206,12 +224,35 @@ const q = (r) => {
   return r.data
 }
 
+/* ── 사진 본문 캐시 ─────────────────────────────────────────
+   사진은 base64로 DB에 들어 있어 한 장에 100~200KB다. 예전에는 getAll()이
+   매번 photos.* 를 통째로 받아, 창을 다시 볼 때마다(=focus) 전체를 재다운로드했다.
+   이제 목록은 가벼운 메타데이터만 받고, 본문은 "처음 보는 사진"만 받아 캐시한다.
+   → 두 번째 새로고침부터 사진 트래픽이 0에 가깝다. */
+const photoCache = new Map() // id → data_url
+const PHOTO_META = 'id,trip_id,member_id,caption,created_at'
+const PHOTO_BATCH = 20 // 한 번에 받을 사진 수 (요청 URL이 너무 길어지지 않게)
+
+async function fetchPhotosCached() {
+  const metas = q(await sb.from('photos').select(PHOTO_META))
+  const missing = metas.filter((p) => !photoCache.has(p.id)).map((p) => p.id)
+  for (let i = 0; i < missing.length; i += PHOTO_BATCH) {
+    const rows = q(await sb.from('photos').select('id,data_url').in('id', missing.slice(i, i + PHOTO_BATCH)))
+    for (const r of rows) photoCache.set(r.id, r.data_url)
+  }
+  // 지워진 사진은 캐시에서도 정리 (메모리 누수 방지)
+  const alive = new Set(metas.map((p) => p.id))
+  for (const id of photoCache.keys()) if (!alive.has(id)) photoCache.delete(id)
+  return metas.map((p) => ({ ...p, data_url: photoCache.get(p.id) || '' }))
+}
+
 const remoteStore = {
   demo: false,
   async getAll() {
-    const names = ['members', 'unavailable', 'trips', 'regions', 'places', 'notices', 'photos']
-    const res = await Promise.all(names.map((n) => sb.from(n).select('*')))
-    const out = {}
+    // photos는 본문이 무거워 캐시를 거쳐 따로 받는다 (위 fetchPhotosCached 주석 참고).
+    const names = ['members', 'unavailable', 'trips', 'regions', 'places', 'notices']
+    const [photos, ...res] = await Promise.all([fetchPhotosCached(), ...names.map((n) => sb.from(n).select('*'))])
+    const out = { photos }
     names.forEach((n, i) => {
       out[n] = q(res[i])
     })
@@ -269,10 +310,22 @@ const remoteStore = {
     q(await sb.from('notices').delete().eq('id', id))
   },
   async addPhoto(p) {
-    q(await sb.from('photos').insert(p))
+    // 방금 올린 사진은 본문을 이미 들고 있으니 캐시에 바로 넣어 재다운로드를 막는다.
+    const row = q(await sb.from('photos').insert(p).select('id'))[0]
+    if (row?.id && p.data_url) photoCache.set(row.id, p.data_url)
   },
   async removePhoto(id) {
     q(await sb.from('photos').delete().eq('id', id))
+    photoCache.delete(id)
+  },
+  async setPhotoCaption(id, caption) {
+    q(await sb.from('photos').update({ caption }).eq('id', id))
+  },
+  async updateTrip(id, fields) {
+    q(await sb.from('trips').update(fields).eq('id', id))
+  },
+  async updatePlace(id, fields) {
+    q(await sb.from('places').update(fields).eq('id', id))
   },
   // 입장 코드 / 관리자 PIN — settings 테이블. 테이블이 아직 없으면 기본값으로 폴백.
   async getSettings() {

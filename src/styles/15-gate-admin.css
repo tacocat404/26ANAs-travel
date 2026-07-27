@@ -1,0 +1,98 @@
+/* ── 입장 게이트 / 관리자 로그인 ── */
+.gate {
+  max-width: 400px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 8vh 26px 40px;
+}
+.gate-blob {
+  width: 64px;
+  height: 64px;
+  background: var(--accent-soft);
+  margin-bottom: 4px;
+}
+.gate-blob .kh {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+}
+.gate h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.gate p {
+  margin: 0;
+  color: var(--sub);
+  font-size: 15px;
+}
+.gate .pin-input {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.4em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 16px 14px;
+}
+.gate-back {
+  align-self: flex-start;
+  color: var(--sub);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── 관리자 패널 ── */
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.admin-row .nm {
+  font-weight: 700;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-row small {
+  color: var(--sub);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.admin-sec-title {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sub);
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 800px) {
+  .lp-hero,
+  .lp-peek,
+  .lp-steps,
+  .lp-lock {
+    grid-template-columns: 1fr;
+  }
+  .lp-brand .sub {
+    display: none;
+  }
+}

@@ -1,0 +1,183 @@
+/* ── 여행 목록 ── */
+.trip-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.trip-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  transition: transform 0.12s var(--ease);
+}
+.trip-card:active {
+  transform: scale(0.98);
+}
+.trip-emoji {
+  font-size: 30px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.trip-cover {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--r-ctl);
+  border: 1px solid var(--line);
+  background-size: cover;
+  background-position: center;
+  background-color: color-mix(in srgb, var(--ink) 6%, var(--bg));
+  flex-shrink: 0;
+}
+.trip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.trip-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.trip-title-row b {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.trip-status {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--sub);
+}
+.trip-status.soon {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.trip-status.live {
+  background: var(--btn-ink);
+  color: var(--btn-ink-text);
+  border-color: transparent;
+}
+.trip-meta {
+  color: var(--sub);
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.trip-meta .gap {
+  width: 6px;
+}
+.chev {
+  margin-left: auto;
+  color: var(--sub);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.emoji-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pick-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+}
+.pick-current {
+  font-size: 22px;
+  line-height: 1;
+}
+.emoji-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  /* 기본 세트가 넉넉해서, 길어지면 이 영역만 스크롤된다 */
+  max-height: 168px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.emoji-mine {
+  position: relative;
+  display: inline-flex;
+}
+.emoji-del {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--surface);
+  display: grid;
+  place-items: center;
+  opacity: 0.55;
+}
+.emoji-add {
+  display: grid;
+  place-items: center;
+  color: var(--sub);
+  border-color: var(--line);
+  border-style: dashed;
+}
+.emoji-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.emoji-add-row input {
+  flex: 1;
+  min-width: 150px;
+}
+.emoji-tip {
+  margin: 0;
+  font-size: 12px;
+  color: var(--sub);
+}
+.emoji-btn {
+  font-size: 22px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: transform 0.12s var(--ease);
+}
+.emoji-btn:active {
+  transform: scale(0.9);
+}
+.emoji-btn.on {
+  border-color: var(--ink);
+  background: var(--bg);
+}
+.month-row label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--sub);
+  flex: 1;
+}
+.members-card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}

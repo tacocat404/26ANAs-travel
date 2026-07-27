@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AirplaneTilt, CaretLeft, GearSix } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
@@ -25,9 +25,11 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminView, setAdminView] = useState(false)
   const [showIntro, setShowIntro] = useState(false) // 앱 안에서 소개 화면 다시보기
+  const lastFetchRef = useRef(0) // 창을 자주 왔다갔다 할 때 연속 재조회를 막는다
   const confirmDlg = useConfirm()
 
   const refresh = useCallback(async () => {
+    lastFetchRef.current = Date.now()
     try {
       setDb(await store.getAll())
       setError('')
@@ -50,8 +52,12 @@ export default function App() {
     refreshSettings()
   }, [refresh, refreshSettings])
 
+  // 다른 친구가 올린 내용이 보이도록 화면에 돌아올 때 새로 불러온다.
+  // 단, 창을 빠르게 전환하면 요청만 쌓이니 3초 안에는 다시 받지 않는다.
   useEffect(() => {
-    const onFocus = () => refresh()
+    const onFocus = () => {
+      if (Date.now() - lastFetchRef.current > 3000) refresh()
+    }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [refresh])

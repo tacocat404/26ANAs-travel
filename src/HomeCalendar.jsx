@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { CaretLeft, CaretRight, CalendarBlank, CalendarDots, Plus, X, ArrowsClockwise } from '@phosphor-icons/react'
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
-import { fmtRange, fmtDate, pad2, memberById, memberName } from './utils.js'
+import { fmtRange, fmtDate, pad2, memberById, memberName, monthGrid, shiftMonth, todayStr as getToday } from './utils.js'
 import EmojiPicker from './EmojiPicker.jsx'
 
 // 홈의 메인 캘린더: 확정된 "여행" + 우리끼리 정해둔 "이런 날"을 한 달 그리드에 함께 본다.
@@ -22,8 +22,7 @@ const PRESETS = [
 ]
 
 export default function HomeCalendar({ db, me, refresh, onOpen }) {
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`
+  const todayStr = getToday()
   const [ym, setYm] = useState(todayStr.slice(0, 7))
   const [selected, setSelected] = useState(null)
   const [adding, setAdding] = useState(false)
@@ -57,9 +56,7 @@ export default function HomeCalendar({ db, me, refresh, onOpen }) {
     .filter((t) => t.confirmed_start <= monthEnd && rangeEnd(t) >= monthStart)
     .sort((a, b) => a.confirmed_start.localeCompare(b.confirmed_start))
 
-  const first = new Date(year, month - 1, 1).getDay()
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const cells = [...Array(first).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
+  const { days: daysInMonth, cells } = monthGrid(ym)
 
   // 이 달에 있는 라벨 (반복 포함) — 아래 목록용
   const monthNotes = useMemo(() => {
@@ -73,11 +70,7 @@ export default function HomeCalendar({ db, me, refresh, onOpen }) {
 
   // 빠르게 여러 번 눌러도 누른 만큼 넘어가도록 이전 값에서 계산한다.
   const move = (d) => {
-    setYm((cur) => {
-      const [y, m] = cur.split('-').map(Number)
-      const t = new Date(y, m - 1 + d, 1)
-      return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}`
-    })
+    setYm((cur) => shiftMonth(cur, d))
     setSelected(null)
     setAdding(false)
   }

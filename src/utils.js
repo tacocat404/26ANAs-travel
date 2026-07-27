@@ -55,6 +55,52 @@ export function tripStage(trip) {
   return todayStr() > last ? 3 : 2
 }
 
+// 그날까지 남은 날 수. 오늘 자정 기준이라 "D-1 = 내일".
+export function dday(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const start = new Date(y, m - 1, d)
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  return Math.round((start - now) / 86400000)
+}
+
+// 여행 카드에 붙는 상태 배지. 여행 목록·대시보드가 같은 규칙을 쓰도록 한 곳에 둔다.
+// withDone=true면 지난 여행을 '다녀옴'으로 (대시보드용). 목록은 탭으로 이미 나뉘어 필요 없다.
+export function tripStatus(trip, { withDone = false } = {}) {
+  const stage = tripStage(trip)
+  if (withDone && stage === 3) return { label: '다녀옴', kind: 'plan' }
+  if (stage === 1) return { label: '날짜 조율 중', kind: 'plan' }
+  const today = todayStr()
+  const end = trip.confirmed_end || trip.confirmed_start
+  if (today >= trip.confirmed_start && today <= end) return { label: '여행 중', kind: 'live' }
+  return { label: `D-${dday(trip.confirmed_start)}`, kind: 'soon', num: true }
+}
+
+// 후보 시기(월 범위)를 읽기 좋게. '2026-08' → '2026.08', 범위면 '2026.08 ~ 2026.09'
+export function fmtMonths(trip) {
+  if (!trip.start_month) return '시기 미정'
+  const s = trip.start_month.replace('-', '.')
+  if (trip.end_month && trip.end_month !== trip.start_month) return `${s} ~ ${trip.end_month.replace('-', '.')}`
+  return s
+}
+
+/* ── 달력 그리드 ── (캘린더 화면 두 곳이 같은 계산을 쓰도록) */
+// 'YYYY-MM' → 그 달의 요일 정렬된 칸 배열. 앞쪽 빈칸은 null.
+export function monthGrid(ym) {
+  const [year, month] = ym.split('-').map(Number)
+  const firstDow = new Date(year, month - 1, 1).getDay()
+  const days = new Date(year, month, 0).getDate()
+  const cells = [...Array(firstDow).fill(null), ...Array.from({ length: days }, (_, i) => i + 1)]
+  return { year, month, days, cells }
+}
+
+// 'YYYY-MM'에서 delta개월 이동
+export function shiftMonth(ym, delta) {
+  const [y, m] = ym.split('-').map(Number)
+  const t = new Date(y, m - 1 + delta, 1)
+  return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}`
+}
+
 // 업로드 사진을 최대 1000px, JPEG 75%로 압축해 용량을 줄인다.
 export async function compressImage(file) {
   const img = await new Promise((resolve, reject) => {

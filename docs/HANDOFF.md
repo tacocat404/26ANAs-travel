@@ -25,7 +25,11 @@
 - "안 되는 날"(unavailable)은 여행별이 아니라 **사람 기준 전역** (이유: PLAN.md §4).
 - DB 스키마 = `supabase/schema.sql` (테이블 바꾸면 이 파일도 같이).
 - 행정구역 경계: `src/assets/geo/municipalities.json` (KOSTAT, southkorea-maps 경량본). 지도 탭에서 lazy import.
-- 화면 코드: `src/*.jsx` (App/Login/TripList/TripDetail/CalendarTab/MapTab/NoticeTab/GalleryTab), 스타일은 `src/styles.css` 하나.
+- 화면 코드: `src/*.jsx` (App/Login/TripList/TripDetail/CalendarTab/MapTab/NoticeTab/GalleryTab 등).
+- **스타일은 `src/styles/` 주제별 16개 파일** + `src/styles.css`가 순서대로 `@import`. ⚠️ **import 순서가 곧 캐스케이드 우선순위**라 임의로 바꾸지 말 것. 빌드하면 한 파일로 합쳐진다.
+- **공통 로직은 `src/utils.js`에 모은다**: 날짜(`pad2/ymd/todayStr/fmtDate/fmtRange/fmtMonths`), 달력(`monthGrid/shiftMonth`), 여행 상태(`tripStage/tripStatus/dday`), `allFreeDays`, `compressImage`. 화면마다 같은 계산을 다시 만들지 말 것.
+- **사진 성능 주의**: 사진은 base64로 DB에 있어 무겁다. `store.js`의 `fetchPhotosCached()`가 목록은 메타데이터만 받고 본문은 처음 보는 것만 받아 캐시한다. photos를 `select('*')`로 다시 바꾸면 새로고침마다 전체 재다운로드가 되살아난다.
+- **지도는 `React.lazy`로 분리**돼 있다(TripDetail). Leaflet이 첫 화면 번들에 끼지 않게 하려는 것이라 정적 import로 되돌리지 말 것.
 - ⚠️ PowerShell로 한글 파일 치환 금지(인코딩 깨짐) - Edit/Write 도구 사용.
 - 미리보기: `.claude/launch.json`(Blog 세션 기준)에 `trip-calendar` 항목이 있고, 일반적으로는 `npm run dev` (포트 5173).
 

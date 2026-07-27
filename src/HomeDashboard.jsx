@@ -7,30 +7,12 @@ import {
   Confetti,
   AirplaneTilt,
 } from '@phosphor-icons/react'
-import { tripStage, fmtRange, todayStr, memberById, allFreeDays, fmtDate } from './utils.js'
+import { tripStage, fmtRange, memberById, allFreeDays, fmtDate, tripStatus } from './utils.js'
 
 // 한 화면에 모든 걸 분류해 보여주는 홈 대시보드(포털).
 // 대표 여행 + 요약 통계 + 섹션 패널(진행 중 / 최근 공지 / 갤러리 / 추억).
 // 각 섹션의 "더보기"로 상세 탭으로 이동한다.
-const p2 = (n) => String(n).padStart(2, '0')
-
-function dday(startStr) {
-  const [y, m, d] = startStr.split('-').map(Number)
-  const start = new Date(y, m - 1, d)
-  const now = new Date()
-  now.setHours(0, 0, 0, 0)
-  return Math.round((start - now) / 86400000)
-}
-
-function statusOf(t) {
-  const stage = tripStage(t)
-  if (stage === 3) return { label: '다녀옴', kind: 'plan' }
-  if (stage === 1) return { label: '날짜 조율 중', kind: 'plan' }
-  const today = todayStr()
-  const end = t.confirmed_end || t.confirmed_start
-  if (today >= t.confirmed_start && today <= end) return { label: '여행 중', kind: 'live' }
-  return { label: `D-${dday(t.confirmed_start)}`, kind: 'soon', num: true }
-}
+const statusOf = (t) => tripStatus(t, { withDone: true })
 
 export default function HomeDashboard({ db, me, setTab, onOpen }) {
   const coverOf = (tid) => {

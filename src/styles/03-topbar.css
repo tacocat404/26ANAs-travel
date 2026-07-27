@@ -1,0 +1,57 @@
+/* ── 상단바 ── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.logo {
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.topbar-title {
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px;
+  margin-left: -4px;
+  border-radius: 8px;
+}
+.me-chip {
+  margin-left: auto;
+  background: color-mix(in srgb, var(--c) 20%, var(--mix));
+  border: 1.5px solid var(--c);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+  transition: transform 0.12s var(--ease);
+}
+.me-chip:active {
+  transform: scale(0.95);
+}
+.demo-banner {
+  font-size: 12px;
+  padding: 8px 14px;
+  background: color-mix(in srgb, #eab308 13%, var(--surface));
+  border-bottom: 1px solid color-mix(in srgb, #eab308 30%, var(--line));
+  color: color-mix(in srgb, var(--ink) 80%, #eab308);
+}

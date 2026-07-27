@@ -1326,6 +1326,75 @@ button.map-chip:active {
   flex-direction: column;
   gap: 8px;
 }
+/* 핀이 어느 도에 있는지 (도를 넘는 여행에서 구분) */
+.place-region {
+  font-style: normal;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sub);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-left: 7px;
+  vertical-align: 1px;
+}
+
+/* 전국 지도의 전체 동선 요약 */
+.route-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.route-title {
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1;
+}
+.route-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.route-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.route-arrow {
+  font-style: normal;
+  color: var(--sub);
+  font-size: 15px;
+}
+.route-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1.5px solid color-mix(in srgb, var(--pc, var(--ink)) 55%, var(--line));
+  border-radius: 999px;
+  padding: 6px 13px 6px 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: transform 0.12s var(--ease);
+}
+.route-chip:active {
+  transform: scale(0.95);
+}
+.route-chip i {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--pc, var(--ink));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  flex-shrink: 0;
+}
 /* 지도 위 검색 (네이버지도식 오버레이) - .map-top 컬럼 안에서 칩 줄 아래에 놓인다 */
 .map-search-wrap {
   display: flex;

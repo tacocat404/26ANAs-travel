@@ -51,12 +51,14 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     ? regions.find((r) => r.code === focus.code) ||
       regions.find((r) => r.code && String(r.code).slice(0, 2) === focus.code)
     : null
-  const places = focusRegion
-    ? db.places
-        .filter((p) => p.trip_id === trip.id && p.region_id === focusRegion.id)
-        .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))
-    : []
+  // 핀은 "여행 하나"의 동선이다. 도(道)를 넘어도 찍은 순서대로 쭉 이어진다.
+  // (대전 충남대 → 경북 영덕처럼 여러 도를 거치는 여행도 한 줄로 연결)
+  const places = db.places
+    .filter((p) => p.trip_id === trip.id)
+    .sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''))
   const placeCount = (regionId) => db.places.filter((p) => p.region_id === regionId).length
+  // 핀이 어느 도에 속하는지 (목록에 지역 이름을 함께 보여주기 위해)
+  const regionNameOf = (p) => regions.find((r) => r.id === p.region_id)?.name || ''
 
   // 지역 검색: 시도 이름(대전)뿐 아니라 시군구 이름(유성구·속초)으로도 찾아
   // 그 지역이 속한 시도를 열어준다.
@@ -262,7 +264,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     const layer = pinsRef.current
     if (!layer) return
     layer.clearLayers()
-    if (!focus) return
+    // 전국 지도에서도 여행 전체 동선을 보여준다 (도를 넘는 여행의 전체 그림).
     const coords = places.map((p) => [p.lat, p.lng])
     if (coords.length > 1) {
       L.polyline(coords, { color: '#7d6b60', weight: 5, opacity: 0.45, interactive: false }).addTo(layer)
@@ -465,6 +467,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
                   </span>
                   <button className="region-name" onClick={() => mapRef.current?.flyTo([p.lat, p.lng], 15)}>
                     {p.name}
+                    {regionNameOf(p) && <em className="place-region">{regionNameOf(p)}</em>}
                   </button>
                   <small>{memberName(db, p.added_by)}</small>
                   <button
@@ -492,6 +495,27 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
         </>
       ) : (
         <>
+          {/* 여러 도를 거치는 여행이면 전국 지도에서 전체 동선을 한눈에 */}
+          {places.length > 1 && (
+            <div className="card route-card">
+              <span className="route-title hand">우리 동선</span>
+              <div className="route-flow">
+                {places.map((p, i) => (
+                  <span key={p.id} className="route-step">
+                    {i > 0 && <em className="route-arrow">→</em>}
+                    <button
+                      className="route-chip"
+                      style={{ '--pc': memberById(db, p.added_by)?.color }}
+                      onClick={() => mapRef.current?.flyTo([p.lat, p.lng], 13)}
+                    >
+                      <i className="num">{i + 1}</i>
+                      {p.name}
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {regions.length === 0 && (
             <div className="empty card">
               <MapPin size={30} weight="duotone" />

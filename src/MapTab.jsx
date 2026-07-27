@@ -5,7 +5,7 @@ import { ArrowLeft, MagnifyingGlass, MapPin, Plus, X } from '@phosphor-icons/rea
 import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
 import { memberById, memberName } from './utils.js'
-import { PROVINCE_LABELS, geoStyle, outerRings } from './mapStyle.js'
+import { PROVINCE_LABELS, SIDO_NAMES, geoStyle, outerRings } from './mapStyle.js'
 import { loadKakao, searchKakao, searchOsm } from './mapSearch.js'
 import { KAKAO_JS_KEY } from './config.js'
 
@@ -21,7 +21,8 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
   const tilesRef = useRef(null)
   const focusDecorRef = useRef(null) // 포커스 모드의 마스크+외곽선
   const pinsRef = useRef(null)
-  const featuresRef = useRef([]) // 전체 구역 feature 목록
+  const featuresRef = useRef([]) // 시도 17개 feature 목록
+  const lookupRef = useRef([]) // 검색용: 시군구 이름 → 그 이름이 속한 시도
   const focusRef = useRef(null) // 이벤트 핸들러에서 현재 모드를 읽기 위한 ref
   const chosenRef = useRef(new Set())
 
@@ -45,7 +46,11 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
   }, [active])
 
   const regions = db.regions.filter((r) => r.trip_id === trip.id)
-  const focusRegion = focus ? regions.find((r) => r.code === focus.code) : null
+  // 지금 열어둔 시도에 해당하는 후보지. 예전 시군구 코드(5자리)도 앞 2자리로 이어준다.
+  const focusRegion = focus
+    ? regions.find((r) => r.code === focus.code) ||
+      regions.find((r) => r.code && String(r.code).slice(0, 2) === focus.code)
+    : null
   const places = focusRegion
     ? db.places
         .filter((p) => p.trip_id === trip.id && p.region_id === focusRegion.id)
@@ -53,9 +58,25 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     : []
   const placeCount = (regionId) => db.places.filter((p) => p.region_id === regionId).length
 
-  const districtMatches = dq.trim()
-    ? featuresRef.current.filter((f) => f.properties.name.includes(dq.trim())).slice(0, 8)
-    : []
+  // 지역 검색: 시도 이름(대전)뿐 아니라 시군구 이름(유성구·속초)으로도 찾아
+  // 그 지역이 속한 시도를 열어준다.
+  const districtMatches = (() => {
+    const s = dq.trim()
+    if (!s) return []
+    const feats = featuresRef.current
+    const out = []
+    const seen = new Set()
+    const add = (sido, hint) => {
+      if (seen.has(sido)) return
+      const f = feats.find((x) => x.properties.code === sido)
+      if (!f) return
+      seen.add(sido)
+      out.push({ f, hint })
+    }
+    for (const f of feats) if (f.properties.name.includes(s)) add(f.properties.code, null)
+    for (const d of lookupRef.current) if (d.name.includes(s)) add(d.sido, d.name)
+    return out.slice(0, 8)
+  })()
 
   /* ── 지도 초기화 ── */
   useEffect(() => {
@@ -72,13 +93,35 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
 
     let dead = false
     ;(async () => {
-      const [{ feature }, topo] = await Promise.all([
+      const [{ merge }, topo] = await Promise.all([
         import('topojson-client'),
         import('./assets/geo/municipalities.json'),
       ])
       if (dead) return
       const data = topo.default ?? topo
-      const fc = feature(data, data.objects.skorea_municipalities_geo)
+      const obj = data.objects.skorea_municipalities_geo
+
+      // 시군구를 시도(앞 2자리 코드)로 묶어 하나의 덩어리로 합친다.
+      // 내부 경계선이 사라져 "전남·경북·대전"처럼 크게 보이고, 그 안에선 어디든 핀을 찍을 수 있다.
+      const groups = {}
+      const lookup = []
+      for (const g of obj.geometries) {
+        const sido = String(g.properties.code).slice(0, 2)
+        ;(groups[sido] ||= []).push(g)
+        lookup.push({ name: g.properties.name, sido })
+      }
+      lookupRef.current = lookup
+
+      const fc = {
+        type: 'FeatureCollection',
+        features: Object.keys(groups)
+          .sort()
+          .map((sido) => ({
+            type: 'Feature',
+            geometry: merge(data, groups[sido]),
+            properties: { code: sido, name: SIDO_NAMES[sido] || sido },
+          })),
+      }
       featuresRef.current = fc.features
       const geo = L.geoJSON(fc, {
         style: (f) => geoStyle(chosenRef.current)(f),
@@ -176,9 +219,11 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
   }
 
   const openRegion = (r) => {
-    const feat = featuresRef.current.find((f) => f.properties.code === r.code)
+    // 예전에 시군구 단위(5자리)로 담아둔 후보지도 그 지역이 속한 시도로 열어준다.
+    const code = r.code ? String(r.code).slice(0, 2) : null
+    const feat = code ? featuresRef.current.find((f) => f.properties.code === code) : null
     if (feat) focusDistrict(feat)
-    else mapRef.current?.flyTo([r.lat, r.lng], 10) // 예전 데이터(코드 없음) 호환
+    else mapRef.current?.flyTo([r.lat, r.lng], 10) // 코드가 아예 없는 옛 데이터 호환
   }
 
   /* ── 장소 검색 실행 (카카오 우선, 없으면 OSM) ── */
@@ -365,9 +410,10 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
                   {dq.trim() && (
                     <div className="search-results card">
                       {districtMatches.length === 0 && <p className="search-empty">일치하는 지역이 없어요.</p>}
-                      {districtMatches.map((f) => (
+                      {districtMatches.map(({ f, hint }) => (
                         <button key={f.properties.code} className="search-result" onClick={() => focusDistrict(f)}>
                           <b>{f.properties.name}</b>
+                          {hint && <small>{hint}이(가) 있는 지역</small>}
                         </button>
                       ))}
                     </div>

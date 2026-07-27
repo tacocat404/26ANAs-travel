@@ -1891,6 +1891,7 @@ button.map-chip:active {
   margin: 8px 0 0;
   white-space: pre-wrap;
   font-size: 14px;
+  overflow-wrap: anywhere; /* 링크처럼 띄어쓰기 없는 긴 글도 카드 밖으로 안 넘치게 */
 }
 
 /* ── 갤러리 ── */
@@ -2759,6 +2760,9 @@ button.map-chip:active {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* 그리드 칸의 기본값(min-width:auto)이면 긴 공지 한 줄이 칸을 넓혀
+     2열 레이아웃이 화면 밖으로 밀린다. 0으로 낮춰 칸이 줄어들 수 있게. */
+  min-width: 0;
 }
 .dash-panel-head {
   display: flex;
@@ -2802,6 +2806,11 @@ button.map-chip:active {
   padding: 9px 10px;
   border-radius: 14px;
   transition: background 0.15s;
+  min-width: 0; /* 버튼도 내용보다 좁아질 수 있게 */
+}
+/* 공지는 아바타 높이보다 글이 길어지니 위로 정렬 */
+.dash-notice {
+  align-items: flex-start;
 }
 .dash-trip-emoji {
   font-size: 24px;
@@ -2850,18 +2859,27 @@ button.map-chip:active {
   width: 28px;
   height: 28px;
   flex-shrink: 0;
+  margin-top: 2px; /* 첫 줄 글자와 눈높이 맞추기 */
 }
 .dash-notice-body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 1px;
+  flex: 1;
+  gap: 2px;
 }
+/* 긴 공지는 두 줄까지 보여주고 나머지는 줄임표. 눌러서 전문을 본다. */
 .dash-notice-text {
   font-size: 14px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* line-clamp를 못 쓰는 브라우저에서도 두 줄에서 잘리도록 */
+  max-height: calc(1.45em * 2);
+  white-space: normal;
+  overflow-wrap: anywhere; /* 띄어쓰기 없는 긴 글도 잘리지 않게 */
 }
 .dash-notice-body small {
   color: var(--sub);

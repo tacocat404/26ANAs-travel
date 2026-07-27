@@ -40,6 +40,32 @@ const EMPTY = { members: [], unavailable: [], trips: [], regions: [], places: []
 const uid = () => crypto.randomUUID()
 const now = () => new Date().toISOString()
 
+/* ── 날짜 라벨("이런 날이에요") ──────────────────────────────
+   공유 모드에서 day_notes 테이블이 아직 없어도 기능이 멈추지 않도록,
+   이 기기(localStorage)에 대신 저장하고 UI가 그 사실을 알려준다.
+   테이블을 만들면(SETUP.md 5단계) 그다음부터 친구들과 공유된다. */
+const LS_NOTES = 'trip-cal-day-notes'
+const notesRead = () => {
+  try {
+    const v = JSON.parse(localStorage.getItem(LS_NOTES))
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
+  }
+}
+const notesWrite = (list) => {
+  try {
+    localStorage.setItem(LS_NOTES, JSON.stringify(list))
+  } catch {
+    /* 저장 공간이 없으면 조용히 넘어간다 */
+  }
+}
+const notesAddLocal = (n) => {
+  const row = { id: uid(), created_at: now(), ...n }
+  notesWrite([...notesRead(), row])
+  return row
+}
+
 function lsRead() {
   try {
     const d = JSON.parse(localStorage.getItem(LS_KEY))
@@ -56,7 +82,7 @@ const localStore = {
   demo: true,
   async getAll() {
     const db = lsRead()
-    return { ...db, members: softMembers(db.members) }
+    return { ...db, members: softMembers(db.members), day_notes: notesRead() }
   },
   async addMember(name) {
     const db = lsRead()
@@ -165,6 +191,13 @@ const localStore = {
     if (m) m.name = name
     lsWrite(db)
   },
+  // 날짜 라벨 ("8월 3일은 유노 생일" 같은 표시)
+  async addDayNote(n) {
+    return notesAddLocal(n)
+  },
+  async removeDayNote(id) {
+    notesWrite(notesRead().filter((n) => n.id !== id))
+  },
 }
 
 const sb = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
@@ -183,6 +216,14 @@ const remoteStore = {
       out[n] = q(res[i])
     })
     out.members = softMembers(out.members)
+    // 날짜 라벨은 테이블이 아직 없을 수 있어 따로 읽는다 (없으면 이 기기 저장분으로).
+    try {
+      out.day_notes = q(await sb.from('day_notes').select('*'))
+      out.day_notes_local = false
+    } catch {
+      out.day_notes = notesRead()
+      out.day_notes_local = true
+    }
     return out
   },
   async addMember(name) {
@@ -252,6 +293,21 @@ const remoteStore = {
   },
   async renameMember(id, name) {
     q(await sb.from('members').update({ name }).eq('id', id))
+  },
+  // 날짜 라벨 — 테이블이 없으면 이 기기에 저장해 기능이 멈추지 않게 한다.
+  async addDayNote(n) {
+    try {
+      return q(await sb.from('day_notes').insert(n).select())[0]
+    } catch {
+      return notesAddLocal(n)
+    }
+  },
+  async removeDayNote(id) {
+    try {
+      q(await sb.from('day_notes').delete().eq('id', id))
+    } catch {
+      notesWrite(notesRead().filter((n) => n.id !== id))
+    }
   },
 }
 

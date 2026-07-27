@@ -709,12 +709,12 @@ textarea {
 }
 
 /* 홈 캘린더: 일별 그리드에 확정 여행 표시 */
+/* 이제 모든 날짜를 눌러 "이런 날" 라벨을 붙일 수 있다 */
 .home-day {
-  cursor: default;
+  cursor: pointer;
   border: 2px solid transparent;
 }
 .home-day.has-trip {
-  cursor: pointer;
   background: color-mix(in srgb, var(--ink) 6%, var(--mix));
   border-color: color-mix(in srgb, var(--ink) 14%, var(--line));
 }
@@ -727,6 +727,14 @@ textarea {
 }
 .day-trip-emoji {
   font-size: 13px;
+}
+/* 날짜 라벨("이런 날") 이모지 — 여행 이모지와 구분되게 살짝 작고 옅은 받침 */
+.day-note-emoji {
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 1px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .day-trips em {
   font-style: normal;
@@ -1186,6 +1194,116 @@ textarea {
 .day-mine {
   color: var(--sub);
   font-size: 13px;
+}
+
+/* ── 날짜 패널: 이런 날이에요 ── */
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.day-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.day-panel-head .x {
+  margin-left: auto;
+}
+/* 그날 확정된 여행 바로가기 */
+.day-trip-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--surface-2);
+  transition: border-color 0.15s, transform 0.12s var(--ease);
+}
+.day-trip-row:active {
+  transform: scale(0.98);
+}
+.day-trip-row small {
+  color: var(--sub);
+  font-size: 12px;
+}
+.note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-ctl);
+  padding: 9px 11px;
+  font-size: 14px;
+}
+.note-item b {
+  font-size: 14.5px;
+}
+.note-item small {
+  margin-left: auto;
+  color: var(--sub);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.note-item .x {
+  flex-shrink: 0;
+}
+.note-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+.note-repeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 11px;
+}
+.note-repeat-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--ink); /* 폼 라벨이라 본문 수준 대비를 준다 */
+  font-weight: 700;
+  cursor: pointer;
+}
+.note-repeat-check input {
+  width: 17px;
+  height: 17px;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+/* 주의를 주는 안내 (예: 이 기기에만 저장) */
+.hint.warn {
+  border-left-color: var(--accent);
+  color: color-mix(in srgb, var(--ink) 72%, var(--sub));
 }
 
 /* ── 모두 갈 수 있는 주말 추천 ── */
@@ -1930,6 +2048,7 @@ button.map-chip:active {
     transform: translateY(-1px);
   }
   .undated-row:hover,
+  .day-trip-row:hover,
   .home-day.has-trip:hover {
     border-color: var(--ink);
   }

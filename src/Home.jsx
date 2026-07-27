@@ -28,7 +28,7 @@ export default function Home({ db, me, refresh, onOpen, tab, setTab }) {
       {tab === 'home' && <HomeDashboard db={db} me={me} setTab={setTab} onOpen={onOpen} />}
       {tab === 'ongoing' && <TripList db={db} me={me} refresh={refresh} onOpen={onOpen} mode="ongoing" />}
       {tab === 'done' && <TripList db={db} me={me} refresh={refresh} onOpen={onOpen} mode="done" />}
-      {tab === 'cal' && <HomeCalendar db={db} onOpen={onOpen} />}
+      {tab === 'cal' && <HomeCalendar db={db} me={me} refresh={refresh} onOpen={onOpen} />}
       {tab === 'gallery' && <HomeGallery db={db} me={me} refresh={refresh} onOpen={onOpen} />}
     </main>
   )

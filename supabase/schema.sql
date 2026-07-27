@@ -71,6 +71,17 @@ create table photos (
   created_at timestamptz default now()
 );
 
+-- 캘린더 날짜 라벨 ("8월 3일은 유노 생일" 같은 표시). 매년 반복 가능.
+create table if not exists day_notes (
+  id uuid primary key default gen_random_uuid(),
+  date date not null,
+  emoji text default '🎂',
+  text text not null,
+  repeat_yearly boolean default false,
+  member_id uuid references members(id) on delete set null,
+  created_at timestamptz default now()
+);
+
 -- 친구끼리 쓰는 앱이라 링크(anon key)를 아는 사람은 모두 읽고 쓸 수 있게 연다.
 alter table members enable row level security;
 alter table unavailable enable row level security;
@@ -86,6 +97,7 @@ alter table places enable row level security;
 alter table notices enable row level security;
 alter table photos enable row level security;
 alter table settings enable row level security;
+alter table day_notes enable row level security;
 
 create policy "open" on members for all using (true) with check (true);
 create policy "open" on unavailable for all using (true) with check (true);
@@ -95,3 +107,4 @@ create policy "open" on places for all using (true) with check (true);
 create policy "open" on notices for all using (true) with check (true);
 create policy "open" on photos for all using (true) with check (true);
 create policy "open" on settings for all using (true) with check (true);
+create policy "open" on day_notes for all using (true) with check (true);

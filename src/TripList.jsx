@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { Plus, CalendarBlank, MapPin, Megaphone, Images, CaretRight, AirplaneTilt, Confetti } from '@phosphor-icons/react'
 import { store } from './store.js'
 import MemberLegend from './MemberLegend.jsx'
+import EmojiPicker from './EmojiPicker.jsx'
 import { tripStage, fmtRange, todayStr } from './utils.js'
-
-const EMOJIS = ['🏝️', '⛰️', '🏙️', '🎿', '🏕️', '🌸', '🍜', '🚗', '✈️', '🚆']
 
 function fmtPeriod(t) {
   if (!t.start_month) return '시기 미정'
@@ -155,18 +154,10 @@ export default function TripList({ db, me, refresh, onOpen, mode = 'ongoing' }) 
 
       {adding && (
         <form className="card form" onSubmit={submit}>
-          <div className="emoji-row">
-            {EMOJIS.map((e2) => (
-              <button
-                type="button"
-                key={e2}
-                className={'emoji-btn' + (emoji === e2 ? ' on' : '')}
-                onClick={() => setEmoji(e2)}
-              >
-                {e2}
-              </button>
-            ))}
-          </div>
+          <label className="pick-label">
+            이 여행을 나타낼 이모지 <span className="pick-current">{emoji}</span>
+          </label>
+          <EmojiPicker value={emoji} onChange={setEmoji} />
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="여행 이름 (예: 여름 제주도)" maxLength={20} />
           <div className="row month-row">
             <label>

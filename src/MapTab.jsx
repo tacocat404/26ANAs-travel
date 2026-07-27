@@ -6,6 +6,7 @@ import { store } from './store.js'
 import { useConfirm } from './confirm.jsx'
 import { memberById, memberName } from './utils.js'
 import { PROVINCE_LABELS, SIDO_NAMES, geoStyle, outerRings } from './mapStyle.js'
+import { coarseRoute, fmtDist, legsOf, sidoOf } from './mapRoute.js'
 import { loadKakao, searchKakao, searchOsm } from './mapSearch.js'
 import { KAKAO_JS_KEY } from './config.js'
 
@@ -59,6 +60,11 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
   const placeCount = (regionId) => db.places.filter((p) => p.region_id === regionId).length
   // 핀이 어느 도에 속하는지 (목록에 지역 이름을 함께 보여주기 위해)
   const regionNameOf = (p) => regions.find((r) => r.id === p.region_id)?.name || ''
+
+  // 동선 2단계: 전체 지도는 시도 단위 "큰 동선", 확대 지도는 핀 단위 "세부 동선".
+  const coarse = coarseRoute(places, regions)
+  const coarseLegs = legsOf(coarse.map((n) => n.center))
+  const detailLegs = legsOf(places.map((p) => ({ lat: p.lat, lng: p.lng })))
 
   // 지역 검색: 시도 이름(대전)뿐 아니라 시군구 이름(유성구·속초)으로도 찾아
   // 그 지역이 속한 시도를 열어준다.
@@ -259,23 +265,63 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
     setName(r.name.slice(0, 20))
   }
 
-  /* ── 장소 핀 + 연결선 그리기 ── */
+  /* ── 장소 핀 + 연결선 그리기 (지도 단계에 따라 큰 동선 / 세부 동선) ── */
   useEffect(() => {
     const layer = pinsRef.current
     if (!layer) return
     layer.clearLayers()
-    // 전국 지도에서도 여행 전체 동선을 보여준다 (도를 넘는 여행의 전체 그림).
+
+    // 구간 거리 라벨을 선 중간에 놓는다.
+    const drawLegLabels = (legs) =>
+      legs.forEach((l) => {
+        L.marker([(l.from.lat + l.to.lat) / 2, (l.from.lng + l.to.lng) / 2], {
+          icon: L.divIcon({ className: 'leg-label', html: `약 ${fmtDist(l.km)}`, iconSize: null }),
+          interactive: false,
+        }).addTo(layer)
+      })
+
+    // ── 전체 지도: 시도 단위 큰 동선 (대전 → 경북) ──
+    // 이 축척에서는 개별 핀이 겹쳐 읽히지 않으니, 지역 덩어리로 묶어 흐름만 보여준다.
+    if (!focus) {
+      if (coarse.length > 1) {
+        const line = coarse.map((n) => [n.center.lat, n.center.lng])
+        L.polyline(line, { color: '#7d6b60', weight: 6, opacity: 0.5, interactive: false }).addTo(layer)
+        L.polyline(line, { color: '#ffffff', weight: 3, dashArray: '1 10', interactive: false }).addTo(layer)
+        drawLegLabels(coarseLegs.legs)
+      }
+      coarse.forEach((n) => {
+        L.marker([n.center.lat, n.center.lng], {
+          icon: L.divIcon({
+            className: 'pin-wrap',
+            html: `<span class="route-node"><i class="num">${n.no}</i>${n.name}<em class="num">${n.places.length}곳</em></span>`,
+            iconSize: null,
+          }),
+        })
+          .addTo(layer)
+          .bindTooltip(n.places.map((p) => p.name).join(' → '), { direction: 'top' })
+          .on('click', () => {
+            const feat = featuresRef.current.find((f) => f.properties.code === n.key)
+            if (feat) focusDistrict(feat)
+          })
+      })
+      return
+    }
+
+    // ── 확대 지도: 핀 하나하나를 잇는 세부 동선 ──
+    // 도를 넘는 여행도 한 줄로 이어지되, 지금 열어둔 지역 밖 핀은 흐리게 둔다.
     const coords = places.map((p) => [p.lat, p.lng])
     if (coords.length > 1) {
       L.polyline(coords, { color: '#7d6b60', weight: 5, opacity: 0.45, interactive: false }).addTo(layer)
       L.polyline(coords, { color: '#ffffff', weight: 2.5, dashArray: '1 9', interactive: false }).addTo(layer)
+      drawLegLabels(detailLegs.legs)
     }
     places.forEach((p, i) => {
       const color = memberById(db, p.added_by)?.color || '#18181b'
+      const outside = sidoOf(p, regions).key !== focus.code
       L.marker([p.lat, p.lng], {
         icon: L.divIcon({
           className: 'pin-wrap',
-          html: `<span class="place-pin" style="--pc:${color}">${i + 1}</span>`,
+          html: `<span class="place-pin${outside ? ' dim' : ''}" style="--pc:${color}">${i + 1}</span>`,
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         }),
@@ -293,7 +339,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
         }),
       }).addTo(layer)
     }
-  }, [db.places, db.members, draft, focus, trip.id])
+  }, [db.places, db.regions, db.members, draft, focus, trip.id])
 
   /* ── 후보지 담기 / 장소 추가 ── */
   const ensureRegion = async () => {
@@ -436,7 +482,8 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
       {focus ? (
         <>
           <p className="hint">
-            장소를 <b>검색</b>하거나 지도를 <b>직접 탭</b>하면 번호 핀이 찍히고, 찍은 순서대로 선이 이어져요.
+            장소를 <b>검색</b>하거나 지도를 <b>직접 탭</b>하면 번호 핀이 찍히고, 찍은 순서대로 선과 거리가 이어져요. 다른
+            지역 핀은 흐리게 보여요.
           </p>
           {draft && (
             <form className="card form" onSubmit={addPlace}>
@@ -458,6 +505,12 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
               </div>
             </form>
           )}
+          {places.length > 1 && detailLegs.total > 0 && (
+            <div className="route-head detail-total">
+              <span className="route-title hand">세부 동선</span>
+              <small className="route-total num">전체 약 {fmtDist(detailLegs.total)}</small>
+            </div>
+          )}
           {places.length > 0 && (
             <ol className="place-list">
               {places.map((p, i) => (
@@ -469,6 +522,7 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
                     {p.name}
                     {regionNameOf(p) && <em className="place-region">{regionNameOf(p)}</em>}
                   </button>
+                  {i > 0 && <small className="leg-km num">약 {fmtDist(detailLegs.legs[i - 1].km)}</small>}
                   <small>{memberName(db, p.added_by)}</small>
                   <button
                     className="x"
@@ -495,25 +549,42 @@ export default function MapTab({ db, me, trip, refresh, active = true }) {
         </>
       ) : (
         <>
-          {/* 여러 도를 거치는 여행이면 전국 지도에서 전체 동선을 한눈에 */}
+          {/* 전체 지도에서는 지역 단위 큰 동선을 한눈에 (대전 → 경북) */}
           {places.length > 1 && (
             <div className="card route-card">
-              <span className="route-title hand">우리 동선</span>
+              <div className="route-head">
+                <span className="route-title hand">우리 동선</span>
+                {coarseLegs.total > 0 && (
+                  <small className="route-total num">지역 사이 약 {fmtDist(coarseLegs.total)}</small>
+                )}
+              </div>
               <div className="route-flow">
-                {places.map((p, i) => (
-                  <span key={p.id} className="route-step">
-                    {i > 0 && <em className="route-arrow">→</em>}
+                {coarse.map((n, i) => (
+                  <span key={n.key + '-' + i} className="route-step">
+                    {i > 0 && (
+                      <em className="route-arrow">
+                        →
+                        <small className="num">{fmtDist(coarseLegs.legs[i - 1].km)}</small>
+                      </em>
+                    )}
                     <button
                       className="route-chip"
-                      style={{ '--pc': memberById(db, p.added_by)?.color }}
-                      onClick={() => mapRef.current?.flyTo([p.lat, p.lng], 13)}
+                      onClick={() => {
+                        const feat = featuresRef.current.find((f) => f.properties.code === n.key)
+                        if (feat) focusDistrict(feat)
+                        else mapRef.current?.flyTo([n.center.lat, n.center.lng], 10)
+                      }}
                     >
-                      <i className="num">{i + 1}</i>
-                      {p.name}
+                      <i className="num">{n.no}</i>
+                      {n.name}
+                      <em className="route-cnt num">{n.places.length}곳</em>
                     </button>
                   </span>
                 ))}
               </div>
+              <p className="route-sub">
+                지역을 누르면 그 안에서 <b>세부 동선</b>(어디부터 어디까지)이 보여요.
+              </p>
             </div>
           )}
           {regions.length === 0 && (

@@ -38,7 +38,7 @@
 ## 남은 일 (우선순위 순)
 1. ~~**Supabase 연결**~~ — 2026-07-24 완료. `src/config.js`에 URL + Publishable key(`sb_publishable_...`, 새 Supabase 키 체계) 입력됨. 앱은 이제 **공유 모드**로 동작 중 (친구들끼리 같은 데이터 공유).
 2. ~~**배포**~~ — GitHub Pages로 이미 자동 배포 중 (main push = 배포). https://tacocat404.github.io/26ANAs-travel/
-3. **`supabase/migration-media.sql` 실행**(SETUP.md 6단계) — 운영자가 한 번 Run 해야 갤러리 동영상이 켜진다. 실행 전에는 사진만 되고 앱은 정상. 실행 후 실제 영상 업로드는 아직 미검증.
+3. ~~**`supabase/migration-media.sql` 실행**~~ — 2026-08-03 완료. 갤러리 동영상 켜짐(업로드→재생→삭제까지 실 환경 검증, 삭제 시 보관함 파일도 함께 삭제됨).
 4. 이후 아이디어(합의 안 됨, 제안만): 전원 가능일 자동 추천, 후보지 투표, 준비물 체크리스트, 비용 정산, 공지 수정, 샘플 데이터 정리 기능.
 
 ## 현재 실사용 데이터 (2026-08-03, 공유 DB)

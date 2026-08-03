@@ -101,6 +101,57 @@ export function shiftMonth(ym, delta) {
   return `${t.getFullYear()}-${pad2(t.getMonth() + 1)}`
 }
 
+/* ── 갤러리 미디어(사진 / 동영상) ── */
+export const MAX_VIDEO_MB = 50 // Supabase 보관함 한 파일 제한과 맞춘 값
+export const isVideoFile = (file) => (file?.type || '').startsWith('video/')
+
+// 동영상의 첫 장면을 뽑아 미리보기 사진으로 만든다.
+// 목록(갤러리 격자)은 이 사진을 그리기 때문에 동영상도 사진과 똑같이 보인다.
+export async function videoPoster(file) {
+  const url = URL.createObjectURL(file)
+  const v = document.createElement('video')
+  v.preload = 'metadata'
+  v.muted = true
+  v.playsInline = true
+  try {
+    await new Promise((resolve, reject) => {
+      v.onloadeddata = resolve
+      v.onerror = () => reject(new Error('동영상을 읽지 못했어요'))
+      v.src = url
+    })
+    // 맨 앞은 검은 화면인 영상이 많아 살짝 뒤 장면을 쓴다.
+    // 못 옮기는 형식도 있어서 1.5초 지나면 있는 그대로 찍는다.
+    await new Promise((resolve) => {
+      const done = () => resolve()
+      v.onseeked = done
+      setTimeout(done, 1500)
+      v.currentTime = Math.min(0.6, (v.duration || 1) / 3)
+    })
+    const w = v.videoWidth || 640
+    const h = v.videoHeight || 360
+    const scale = Math.min(1, 1000 / Math.max(w, h))
+    const c = document.createElement('canvas')
+    c.width = Math.round(w * scale)
+    c.height = Math.round(h * scale)
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height)
+    return c.toDataURL('image/jpeg', 0.7)
+  } finally {
+    v.removeAttribute('src')
+    URL.revokeObjectURL(url)
+  }
+}
+
+// 미리보기를 못 만들었을 때 쓰는 회색 자리표시자 (data_url은 비울 수 없다).
+export function blankPoster() {
+  const c = document.createElement('canvas')
+  c.width = 640
+  c.height = 360
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#3a3a3e'
+  ctx.fillRect(0, 0, c.width, c.height)
+  return c.toDataURL('image/jpeg', 0.6)
+}
+
 // 업로드 사진을 최대 1000px, JPEG 75%로 압축해 용량을 줄인다.
 export async function compressImage(file) {
   const img = await new Promise((resolve, reject) => {

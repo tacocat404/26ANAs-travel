@@ -62,14 +62,23 @@ create table notices (
   created_at timestamptz default now()
 );
 
+-- 갤러리(사진 + 동영상).
+-- 사진: data_url에 압축한 이미지가 base64로 들어간다.
+-- 동영상: 파일은 Storage 'media' 버킷에 올리고 video_url/storage_path만 저장.
+--         data_url에는 첫 장면 미리보기 사진이 들어가 목록을 사진처럼 그린다.
 create table photos (
   id uuid primary key default gen_random_uuid(),
   trip_id uuid not null references trips(id) on delete cascade,
   member_id uuid references members(id) on delete set null,
   data_url text not null,
   caption text default '',
+  kind text not null default 'image',   -- 'image' | 'video'
+  video_url text,
+  storage_path text,
   created_at timestamptz default now()
 );
+-- 기존 프로젝트에 이미 photos 테이블이 있으면 supabase/migration-media.sql 실행
+-- (칸 3개 추가 + 동영상 보관함 버킷 + 정책).
 
 -- 캘린더 날짜 라벨 ("8월 3일은 유노 생일" 같은 표시). 매년 반복 가능.
 create table if not exists day_notes (

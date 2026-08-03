@@ -82,7 +82,7 @@ const localStore = {
   demo: true,
   async getAll() {
     const db = lsRead()
-    return { ...db, members: softMembers(db.members), day_notes: notesRead() }
+    return { ...db, members: softMembers(db.members), day_notes: notesRead(), media_ready: true }
   },
   async addMember(name) {
     const db = lsRead()
@@ -158,13 +158,28 @@ const localStore = {
   },
   async addPhoto(p) {
     const db = lsRead()
-    db.photos.push({ id: uid(), created_at: now(), ...p })
+    db.photos.push({ id: uid(), created_at: now(), kind: 'image', ...p })
     lsWrite(db)
   },
   async removePhoto(id) {
     const db = lsRead()
     db.photos = db.photos.filter((p) => p.id !== id)
     lsWrite(db)
+  },
+  // 데모 모드엔 파일 보관함이 없다. 브라우저 저장 공간(약 5MB)에 넣어야 해서
+  // 아주 짧은 영상만 받고, 넘치면 이유를 알려준다.
+  async uploadVideo(file) {
+    const LIMIT = 2 * 1024 * 1024
+    if (file.size > LIMIT) {
+      throw new Error('이 기기 저장 모드에서는 2MB보다 작은 영상만 올릴 수 있어요.')
+    }
+    const video_url = await new Promise((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(r.result)
+      r.onerror = () => reject(new Error('동영상을 읽지 못했어요'))
+      r.readAsDataURL(file)
+    })
+    return { video_url, storage_path: null }
   },
   async setPhotoCaption(id, caption) {
     const db = lsRead()
@@ -219,6 +234,7 @@ const localStore = {
 }
 
 const sb = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
+const MEDIA_BUCKET = 'media' // 동영상 파일 보관함 (supabase/migration-media.sql)
 const q = (r) => {
   if (r.error) throw r.error
   return r.data
@@ -231,10 +247,22 @@ const q = (r) => {
    → 두 번째 새로고침부터 사진 트래픽이 0에 가깝다. */
 const photoCache = new Map() // id → data_url
 const PHOTO_META = 'id,trip_id,member_id,caption,created_at'
+// 동영상 칸(migration-media.sql)이 아직 없는 DB에서도 앱이 멈추지 않게,
+// 확장 칸은 따로 붙여 읽어 보고 실패하면 기본 칸만 쓴다.
+const PHOTO_META_MEDIA = PHOTO_META + ',kind,video_url,storage_path'
 const PHOTO_BATCH = 20 // 한 번에 받을 사진 수 (요청 URL이 너무 길어지지 않게)
+let mediaReady = true // photos에 동영상 칸이 있는지 (한 번 실패하면 false로 굳는다)
 
 async function fetchPhotosCached() {
-  const metas = q(await sb.from('photos').select(PHOTO_META))
+  let metas = null
+  if (mediaReady) {
+    try {
+      metas = q(await sb.from('photos').select(PHOTO_META_MEDIA))
+    } catch {
+      mediaReady = false // 아직 6단계 마이그레이션 전 — 사진만 쓰는 모드
+    }
+  }
+  if (!metas) metas = q(await sb.from('photos').select(PHOTO_META))
   const missing = metas.filter((p) => !photoCache.has(p.id)).map((p) => p.id)
   for (let i = 0; i < missing.length; i += PHOTO_BATCH) {
     const rows = q(await sb.from('photos').select('id,data_url').in('id', missing.slice(i, i + PHOTO_BATCH)))
@@ -252,7 +280,7 @@ const remoteStore = {
     // photos는 본문이 무거워 캐시를 거쳐 따로 받는다 (위 fetchPhotosCached 주석 참고).
     const names = ['members', 'unavailable', 'trips', 'regions', 'places', 'notices']
     const [photos, ...res] = await Promise.all([fetchPhotosCached(), ...names.map((n) => sb.from(n).select('*'))])
-    const out = { photos }
+    const out = { photos, media_ready: mediaReady }
     names.forEach((n, i) => {
       out[n] = q(res[i])
     })
@@ -310,13 +338,44 @@ const remoteStore = {
     q(await sb.from('notices').delete().eq('id', id))
   },
   async addPhoto(p) {
+    // 동영상 칸이 아직 없는 DB에 kind/video_url을 보내면 통째로 실패한다.
+    // 6단계 마이그레이션 전에도 사진 올리기는 그대로 되게 없는 칸은 빼고 보낸다.
+    let payload = p
+    if (!mediaReady) {
+      const { kind, video_url, storage_path, ...rest } = p
+      payload = rest
+    }
     // 방금 올린 사진은 본문을 이미 들고 있으니 캐시에 바로 넣어 재다운로드를 막는다.
-    const row = q(await sb.from('photos').insert(p).select('id'))[0]
+    const row = q(await sb.from('photos').insert(payload).select('id'))[0]
     if (row?.id && p.data_url) photoCache.set(row.id, p.data_url)
   },
-  async removePhoto(id) {
+  async removePhoto(id, storage_path) {
     q(await sb.from('photos').delete().eq('id', id))
     photoCache.delete(id)
+    // 동영상이면 보관함의 실제 파일도 지운다 (용량 차지 방지).
+    // 파일 삭제가 실패해도 목록에서는 이미 사라졌으니 앱을 멈추지 않는다.
+    if (storage_path) {
+      try {
+        await sb.storage.from(MEDIA_BUCKET).remove([storage_path])
+      } catch (e) {
+        console.error('보관함 파일 삭제 실패', e)
+      }
+    }
+  },
+  // 동영상 파일을 보관함(Storage)에 올리고 주소를 돌려준다.
+  // DB에는 주소만 들어가서, 사진처럼 통째로 내려받는 일이 없다.
+  async uploadVideo(file) {
+    const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4'
+    const storage_path = `videos/${uid()}.${ext}`
+    const { error } = await sb.storage
+      .from(MEDIA_BUCKET)
+      .upload(storage_path, file, { contentType: file.type || 'video/mp4' })
+    if (error) {
+      console.error(error)
+      throw new Error('동영상 보관함이 아직 준비되지 않았어요. (SETUP.md 6단계)')
+    }
+    const { data } = sb.storage.from(MEDIA_BUCKET).getPublicUrl(storage_path)
+    return { video_url: data.publicUrl, storage_path }
   },
   async setPhotoCaption(id, caption) {
     q(await sb.from('photos').update({ caption }).eq('id', id))

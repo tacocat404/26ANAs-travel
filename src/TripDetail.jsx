@@ -14,7 +14,7 @@ import GalleryTab from './GalleryTab.jsx'
 const MapTab = lazy(() => import('./MapTab.jsx'))
 
 // 여행 상세: 단계 흐름(1 일정조율 → 2 세부일정 → 3 추억정리) + 공지 상시 접근.
-export default function TripDetail({ db, me, trip, refresh, onDeleted }) {
+export default function TripDetail({ db, me, trip, refresh, onDeleted, isAdmin = false }) {
   const suggested = tripStage(trip)
   const suggestedKey = ['schedule', 'plan', 'memory'][suggested - 1]
   const [view, setView] = useState(suggestedKey)
@@ -55,7 +55,7 @@ export default function TripDetail({ db, me, trip, refresh, onDeleted }) {
       )}
       {visited.has('memory') && (
         <div hidden={view !== 'memory'}>
-          <GalleryTab db={db} me={me} trip={trip} refresh={refresh} />
+          <GalleryTab db={db} me={me} trip={trip} refresh={refresh} isAdmin={isAdmin} />
         </div>
       )}
       {visited.has('notice') && (

@@ -80,6 +80,9 @@
   .viewer-bar button:hover {
     background: rgba(255, 255, 255, 0.14);
   }
+  .media-del:hover {
+    background: var(--danger);
+  }
   .danger-link:hover {
     opacity: 0.8;
   }

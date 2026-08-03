@@ -191,6 +191,7 @@ export default function App() {
           me={me}
           trip={trip}
           refresh={refresh}
+          isAdmin={isAdmin}
           onDeleted={() => setView({ page: 'home', tripId: null })}
         />
       ) : (
@@ -200,6 +201,7 @@ export default function App() {
           refresh={refresh}
           tab={homeTab}
           setTab={setHomeTab}
+          isAdmin={isAdmin}
           onOpen={(id) => setView({ page: 'trip', tripId: id })}
         />
       )}

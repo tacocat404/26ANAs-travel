@@ -14,7 +14,7 @@ const TABS = [
 
 // 홈(메인): 기본은 대시보드(한 화면 요약). 나머지 탭은 상세 목록.
 // 탭 상태는 App이 들고 있어 여행에 다녀와도 보던 탭이 유지된다.
-export default function Home({ db, me, refresh, onOpen, tab, setTab }) {
+export default function Home({ db, me, refresh, onOpen, tab, setTab, isAdmin = false }) {
   return (
     <main className="page">
       <nav className="tabs home-tabs">
@@ -29,7 +29,9 @@ export default function Home({ db, me, refresh, onOpen, tab, setTab }) {
       {tab === 'ongoing' && <TripList db={db} me={me} refresh={refresh} onOpen={onOpen} mode="ongoing" />}
       {tab === 'done' && <TripList db={db} me={me} refresh={refresh} onOpen={onOpen} mode="done" />}
       {tab === 'cal' && <HomeCalendar db={db} me={me} refresh={refresh} onOpen={onOpen} />}
-      {tab === 'gallery' && <HomeGallery db={db} me={me} refresh={refresh} onOpen={onOpen} />}
+      {tab === 'gallery' && (
+        <HomeGallery db={db} me={me} refresh={refresh} onOpen={onOpen} isAdmin={isAdmin} />
+      )}
     </main>
   )
 }

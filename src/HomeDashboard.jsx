@@ -6,6 +6,7 @@ import {
   Megaphone,
   Confetti,
   AirplaneTilt,
+  Play,
 } from '@phosphor-icons/react'
 import { tripStage, fmtRange, memberById, allFreeDays, fmtDate, tripStatus } from './utils.js'
 
@@ -112,7 +113,7 @@ export default function HomeDashboard({ db, me, setTab, onOpen }) {
       <div className="dash-stats card">
         <Stat n={ongoing.length} label="진행 중" onClick={() => setTab('ongoing')} />
         <Stat n={done.length} label="다녀온 여행" onClick={() => setTab('done')} />
-        <Stat n={db.photos.length} label="사진" onClick={() => setTab('gallery')} />
+        <Stat n={db.photos.length} label="사진·영상" onClick={() => setTab('gallery')} />
         <Stat n={db.members.length} label="친구" />
       </div>
 
@@ -198,6 +199,11 @@ export default function HomeDashboard({ db, me, setTab, onOpen }) {
               {recentPhotos.map((p) => (
                 <button key={p.id} className="dash-photo" onClick={() => setTab('gallery')}>
                   <img src={p.data_url} alt="" loading="lazy" />
+                  {p.kind === 'video' && (
+                    <span className="play-badge small" aria-hidden="true">
+                      <Play size={11} weight="fill" />
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

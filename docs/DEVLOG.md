@@ -2,6 +2,14 @@
 
 ## 2026-08-03
 
+### [배포] Vercel 배포가 흰 화면이던 문제 수정 (경로 기준 자동 전환)
+- **사용자 프롬프트(요약)**: Vercel로도 배포했는데 흰 화면만 나온다 (https://26-an-as-travel.vercel.app/).
+- **원인**: `vite.config.js`의 `base`가 빌드할 때 **항상 `/26ANAs-travel/`**로 고정돼 있었다. GitHub Pages는 주소에 저장소 이름이 붙어서 맞지만, Vercel은 최상위 주소라 브라우저가 `/26ANAs-travel/assets/index-*.js`를 찾다가 404 → 화면에 아무것도 안 그려짐. 배포된 HTML을 직접 받아 링크가 `/26ANAs-travel/...`인 것을 확인해 원인을 특정했다.
+- **Claude의 변경사항**: Vercel이 빌드 때 자동으로 넣어주는 `VERCEL` 환경변수로 구분해, Vercel이면 `base='/'`, 아니면 기존대로 `'/26ANAs-travel/'`. 한 저장소로 두 곳에 배포해도 각자 맞는 경로가 나온다. (같은 실수를 반복하지 않게 파일에 주석으로 이유를 남김.)
+- **검증**: 로컬에서 두 가지 빌드를 각각 돌려 `dist/index.html` 링크가 `/26ANAs-travel/assets/…`(Pages) / `/assets/…`(Vercel)로 갈리는 것 확인. push 후 Vercel 재배포 완료 → 배포된 HTML 링크가 `/assets/…`로 바뀌고 JS·CSS 모두 **200** 응답, 앱이 실제로 렌더(흰 화면 아님)되는 것 확인.
+- **남은 확인**: 검증 도중 이 PC에서 `supabase.co` DNS가 막혀(두 사이트 모두 "불러오는 중…"에서 멈춤) **데이터 로딩까지는 확인 못 했다.** 코드 변경과 무관한 이 PC의 네트워크 문제이며, 운영자 기기에서 확인 필요.
+- **다음 단계**: Vercel 주소를 계속 쓸 거면 **카카오 개발자 콘솔에 `https://26-an-as-travel.vercel.app` 도메인 등록** 필요(안 하면 그 주소에서만 장소 검색이 OpenStreetMap으로 조용히 내려감).
+
 ### [배포] 갤러리 삭제·동영상 main 배포 + 실 환경 동영상 검증
 - **사용자 프롬프트(요약)**: "실행했고 배포해줘" (운영자가 `migration-media.sql` 실행 완료).
 - **검증(실 DB·실 보관함, 배포 전)**: `photos`에 `kind/video_url/storage_path` 칸 생성 확인 → 앱에서 테스트 영상(webm 39KB) 업로드 → **Storage `media` 버킷에 파일 생성 + 공개 주소 200(video/webm, 39547바이트) + DB row(kind=video)** 확인 → 뷰어에서 재생(readyState 4, 2.2초 재생) → × 삭제 → **DB row와 보관함 파일이 함께 삭제**(공개 주소 400)되고 실데이터가 원래 사진 1장으로 복구된 것 확인.

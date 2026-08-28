@@ -20,14 +20,17 @@
 
    → Claude가 `src/config.js`에 넣으면 자동으로 공유 모드로 바뀌어요.
 
-## 2단계. 배포 (친구들에게 링크 주기)
+## 2단계. 배포 (친구들에게 링크 주기) — **이미 되어 있어요**
 
-블로그 때와 똑같은 방식이에요 (GitHub + Vercel).
+배포는 **GitHub Pages** 하나만 씁니다. 지금 주소는 👉 https://tacocat404.github.io/26ANAs-travel/
 
-1. GitHub에서 **New repository** → 이름 예: `trip-calendar` (Private 말고 **Public** 또는 Vercel 연결되는 Private)
-2. Claude에게: "저장소 만들었어, 주소는 ○○○야. 올려줘" → Claude가 push
-3. https://vercel.com → **Add New Project** → 방금 만든 저장소 선택 → **Deploy** (설정 바꿀 것 없음, Vite 자동 인식)
-4. 나온 주소(`https://trip-calendar-xxx.vercel.app`)를 친구들에게 공유! 🎉
+- Claude가 main에 push하면 **GitHub Actions가 알아서 빌드하고 올려요.** 따로 누를 것 없어요.
+- 처음 한 번만 필요했던 설정: 저장소 **Settings → Pages → Source = "GitHub Actions"** (이미 완료).
+- 배포가 잘 됐는지 보고 싶으면 저장소 상단 **Actions** 탭에서 초록 체크를 확인하면 돼요.
+
+> **다른 서비스(Vercel 등)는 쓰지 않기로 했어요.** 두 군데에 올리면 주소가 두 개가 되어 친구들이 헷갈리고,
+> 카카오 도메인 등록도 두 번 해야 해요. 한 곳만 쓰는 게 관리가 훨씬 쉽습니다.
+> (참고: 다른 곳에 올리면 주소 모양이 달라 파일 경로가 어긋나는데, `vite.config.js`가 이걸 자동으로 맞추게 해뒀어요.)
 
 ## 3단계 (선택). 장소 검색을 카카오로 업그레이드 — 약 5분
 
@@ -40,7 +43,7 @@
 3. 만든 앱 클릭 → **[앱 설정] → [플랫폼]** → **Web 플랫폼 등록** 에서 사이트 도메인 추가:
    - `http://localhost:5173`
    - `http://localhost:5174`
-   - (배포 후) `https://우리앱주소.vercel.app` 도 잊지 말고 추가
+   - `https://tacocat404.github.io` (배포 주소. 경로 없이 이것만 등록하면 돼요)
 4. **[앱 설정] → [앱 키]** 에서 **JavaScript 키** 복사
 5. Claude에게: "카카오 JavaScript 키 발급했어. ○○○야. 연결해줘"
    → `src/config.js`의 `KAKAO_JS_KEY`에 넣으면 자동으로 카카오 검색으로 바뀌어요.

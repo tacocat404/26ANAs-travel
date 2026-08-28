@@ -44,10 +44,10 @@
 - 캘린더: 내가 안 되는 날 = 내 색으로 칠해짐 / 친구 = 색 점 / 일요일 빨강·토요일 파랑.
 
 ## 7. 기술 스택
-- React + Vite (화면), Leaflet(지도), Supabase(공유 저장소·선택), Vercel(배포 예정)
+- React + Vite (화면), Leaflet(지도), Supabase(공유 저장소 + 동영상 보관함), GitHub Pages(배포)
 
 ## 8. 로드맵
 - [x] 1단계: 앱 전체 구현 (데모 모드로 동작)
-- [ ] 2단계: 운영자가 Supabase 계정 생성 → 키 입력 → 공유 모드 전환 (`docs/SETUP.md`)
-- [ ] 3단계: GitHub + Vercel 배포 → 친구들에게 링크 공유
+- [x] 2단계: 운영자가 Supabase 계정 생성 → 키 입력 → 공유 모드 전환 (`docs/SETUP.md`)
+- [x] 3단계: GitHub Pages 배포 → 친구들에게 링크 공유 (main push = 자동 배포)
 - [ ] 이후 아이디어: 후보지 투표, 전원 가능한 날 자동 추천, 실시간 반영
